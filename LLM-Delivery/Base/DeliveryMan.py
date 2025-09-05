@@ -20,6 +20,48 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from llm.base_model import BaseModel
 
+# --- 仅处理两类：bytes 和 ndarray ---
+def _ensure_png_bytes(img) -> bytes:
+    # 1) 已是 bytes：直返
+    if isinstance(img, (bytes, bytearray)):
+        return bytes(img)
+
+    # 2) ndarray：转 PNG bytes（支持灰度/BGR/BGRA/float）
+    import numpy as np
+    from PIL import Image
+    from io import BytesIO
+
+    arr = img
+    if arr.dtype != np.uint8:
+        if np.issubdtype(arr.dtype, np.floating):
+            mx = float(arr.max()) if arr.size else 1.0
+            if mx <= 1.0:
+                arr = (np.clip(arr, 0.0, 1.0) * 255.0).round().astype(np.uint8)
+            else:
+                arr = np.clip(arr, 0.0, 255.0).round().astype(np.uint8)
+        else:
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+
+    if arr.ndim == 2:
+        mode = "L"
+        out = arr
+    elif arr.ndim == 3 and arr.shape[2] == 3:
+        # BGR -> RGB
+        out = arr[:, :, ::-1].copy()
+        mode = "RGB"
+    elif arr.ndim == 3 and arr.shape[2] == 4:
+        # BGRA -> RGBA（保留 alpha）
+        b, g, r, a = arr.transpose(2, 0, 1)
+        out = np.dstack([r, g, b, a])
+        mode = "RGBA"
+    else:
+        raise ValueError(f"unsupported ndarray shape: {arr.shape}")
+
+    out = np.ascontiguousarray(out)
+    bio = BytesIO()
+    Image.fromarray(out, mode=mode).save(bio, format="PNG")
+    return bio.getvalue()
+
 
 # ===== Transport Modes =====
 class TransportMode(str, Enum):
@@ -203,50 +245,13 @@ class DeliveryMan:
         }
         self._recalc_towing()
 
-    def _save_img_any(self, img: Any, path: str) -> bool:
-        # 1) 任何带 .save(path) 的对象（QImage/QPixmap/PIL.Image）
-        fn = getattr(img, "save", None)
-        if callable(fn):
-            ok = fn(path)
-            return True if ok is None else bool(ok)
-
-        # 2) 原始字节
-        if isinstance(img, (bytes, bytearray)):
-            with open(path, "wb") as f:
-                f.write(img)
-            return True
-
-        # 3) numpy 数组
-        import numpy as np
-        from PIL import Image
-
-        if isinstance(img, np.ndarray):
-            arr = img
-            # 统一到 uint8：支持 float[0,1] / float[0,255] / int*
-            if arr.dtype != np.uint8:
-                if np.issubdtype(arr.dtype, np.floating):
-                    mx = float(arr.max()) if arr.size else 1.0
-                    # 如果像素最大值 <= 1，按 0~1 归一化处理；否则按 0~255 处理
-                    if mx <= 1.0:
-                        arr = (np.clip(arr, 0.0, 1.0) * 255.0).round().astype(np.uint8)
-                    else:
-                        arr = np.clip(arr, 0.0, 255.0).round().astype(np.uint8)
-                else:
-                    arr = np.clip(arr, 0, 255).astype(np.uint8)
-
-            Image.fromarray(arr).save(path)
-            return True
-
-        # 其余类型：显式报错便于排查
-        raise TypeError(f"Unsupported image type for saving: {type(img)}")
+    def _save_png(self, data: bytes, path: str) -> bool:
+        with open(path, "wb") as f:
+            f.write(data)
+        return True
 
     def _export_vlm_images_debug_once(self, save_dir: str = "debug_snaps") -> List[str]:
-        """
-        调用 vlm_collect_images()，把三张图保存为 PNG。
-        文件名：agent<id>_<time>_{global|local|fpv}.png
-        仅支持 .save(path) 或 bytes/bytearray。
-        """
-        imgs = self.vlm_collect_images()  # [global, local, fpv]
+        imgs = self.vlm_collect_images()  # 全是 PNG bytes 或 None
         os.makedirs(save_dir, exist_ok=True)
 
         ts = time.strftime("%Y%m%d-%H%M%S")
@@ -257,11 +262,11 @@ class DeliveryMan:
             if img is None:
                 continue
             path = os.path.join(save_dir, f"agent{self.agent_id}_{ts}_{names[i]}.png")
-            if self._save_img_any(img, path):
-                saved_paths.append(path)
+            self._save_png(img, path)
+            saved_paths.append(path)
 
-        if saved_paths:
-            self._log(f"debug snapshots saved: {saved_paths}")
+        # if saved_paths:
+        #     self._log(f"debug snapshots saved: {saved_paths}")
         return saved_paths
 
     # ===== wiring =====
@@ -302,23 +307,21 @@ class DeliveryMan:
         self.vlm_infer_fn = self._vlm_infer
 
     # DeliveryMan.vlm_collect_images
-    def vlm_collect_images(self) -> List[Any]:
-        imgs: List[Any] = [None, None, None]
+    def vlm_collect_images(self) -> List[bytes]:
+        imgs = [None, None, None]
 
-        # 前两张：map_exportor（只传当前位置 + active_orders）
+        # 0/1：两张地图（可能本来就是 bytes，也可能是 ndarray） -> 统一成 bytes
         exp = getattr(self, "map_exportor", None)
         if exp is not None:
-            orders: List[Any] = list(self.active_orders) if isinstance(self.active_orders, list) and self.active_orders else []
+            orders = list(self.active_orders) if self.active_orders else []
             g, l = exp.export(agent_xy=(float(self.x), float(self.y)), orders=orders)
-            imgs[0], imgs[1] = g, l
+            imgs[0] = _ensure_png_bytes(g) if g is not None else None
+            imgs[1] = _ensure_png_bytes(l) if l is not None else None
 
-        # 第三张：第一视角（优先 viewer，其次 UE）
-        v = getattr(self, "_viewer", None)
-        if v and callable(getattr(v, "snapshot_first_person", None)):
-            imgs[2] = v.snapshot_first_person()
-        elif getattr(self, "_ue", None):
-            cam_id = int(getattr(self, "_viewer_agent_id", getattr(self, "name", "0")))
-            imgs[2] = self._ue.get_camera_observation(cam_id, viewmode="lit")
+        # 2：第一视角（UE 返回 ndarray 或 bytes） -> 统一成 bytes
+        cam_id = int(getattr(self, "_viewer_agent_id", getattr(self, "name", "0")))
+        fpv = self._ue.get_camera_observation(cam_id, viewmode="lit")
+        imgs[2] = _ensure_png_bytes(fpv) if fpv is not None else None
 
         return imgs
 
