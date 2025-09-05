@@ -1,0 +1,256 @@
+[
+    {
+      "type": "function",
+      "function": {
+        "name": "do_nothing",
+        "description": "Do nothing this turn. No arguments required.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "accept_order",
+        "description": "Accept an order using the provided order index.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            }
+          },
+          "required": [
+            "order_idx"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "pick_up_order",
+        "description": "Pick up an order and move to the specified waypoint.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            },
+            "next_waypoint": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate of the waypoint."
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate of the waypoint."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "order_idx",
+            "next_waypoint"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "deliver_order",
+        "description": "Deliver an order to the specified waypoint.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            },
+            "next_waypoint": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate of the waypoint."
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate of the waypoint."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "order_idx",
+            "next_waypoint"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "buy_beverage",
+        "description": "Buy a beverage by moving to the specified waypoint.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "next_waypoint": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate of the waypoint."
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate of the waypoint."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "next_waypoint"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "open_shared_order",
+        "description": "Open a shared order by specifying an order index and a meeting point.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            },
+            "meeting_point": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate of the meeting point."
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate of the meeting point."
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "order_idx",
+            "meeting_point"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "go_to_meeting_point",
+        "description": "Move to the meeting point of a shared order.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            }
+          },
+          "required": [
+            "order_idx"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "cancel_order",
+        "description": "Cancel a shared order.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_idx": {
+              "type": "integer",
+              "description": "Index of an order in the delivery man's list."
+            }
+          },
+          "required": [
+            "order_idx"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "change_speed",
+        "description": "Change the delivery man's speed.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "new_speed": {
+              "type": "integer",
+              "description": "The new speed (between 1 and 250)."
+            }
+          },
+          "required": [
+            "new_speed"
+          ],
+          "additionalProperties": false
+        },
+        "strict": true
+      }
+    }
+  ]
+  

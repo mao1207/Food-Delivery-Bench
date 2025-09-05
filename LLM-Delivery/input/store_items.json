@@ -1,0 +1,4 @@
+[
+  { "id": "energy_drink", "name": "Energy Drink", "price": 5.0 },
+  { "id": "escooter_battery_pack", "name": "EScooter Battery Pack", "price": 8.0 }
+]

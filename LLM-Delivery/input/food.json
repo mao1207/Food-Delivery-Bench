@@ -1,0 +1,16 @@
+{
+  "items": [
+    { "name": "Burger",       "category": "HOT",     "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 120, "serving_temp_c": 60, "heat_capacity": 1.10 },
+    { "name": "Fries",        "category": "HOT",     "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": true,  "prep_time_s": 900,  "serving_temp_c": 60, "heat_capacity": 0.90 },
+    { "name": "Noodles",      "category": "HOT",     "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": true,  "prep_time_s": 150, "serving_temp_c": 60, "heat_capacity": 1.00 },
+    { "name": "Coffee",       "category": "HOT",     "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 60,  "serving_temp_c": 65, "heat_capacity": 0.85 },
+    { "name": "Salad",        "category": "COLD",    "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 90,  "serving_temp_c": 8,  "heat_capacity": 0.85 },
+    { "name": "Sushi",        "category": "COLD",    "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 120, "serving_temp_c": 8,  "heat_capacity": 0.90 },
+    { "name": "IceCream",     "category": "FROZEN",  "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 300,  "serving_temp_c": -2, "heat_capacity": 0.95 },
+    { "name": "FrozenYogurt", "category": "FROZEN",  "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 300,  "serving_temp_c": -2, "heat_capacity": 0.95 },
+    { "name": "Soup",         "category": "HOT",     "odor": "none",   "motion_sensitive": true,  "nonthermal_time_sensitive": false, "prep_time_s": 180, "serving_temp_c": 65, "heat_capacity": 1.20 },
+    { "name": "Cake",         "category": "AMBIENT", "odor": "none",   "motion_sensitive": true,  "nonthermal_time_sensitive": false, "prep_time_s": 180, "serving_temp_c": 23, "heat_capacity": 0.80 },
+    { "name": "Sandwich",     "category": "AMBIENT", "odor": "none",   "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 60,  "serving_temp_c": 23, "heat_capacity": 0.85 },
+    { "name": "Durian",       "category": "AMBIENT", "odor": "strong", "motion_sensitive": false, "nonthermal_time_sensitive": false, "prep_time_s": 0,   "serving_temp_c": 23, "heat_capacity": 0.90 }
+  ]
+}
