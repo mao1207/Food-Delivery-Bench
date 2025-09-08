@@ -132,6 +132,19 @@ class Bus:
                 # 在当前段上前进
                 self.progress_to_next += remaining_distance / segment_distance
                 remaining_distance = 0.0
+
+        if self.current_path_index >= len(self.route.path_points) - 1:
+            print(f"Bus {self.id} reached the end of the line and is returning.")
+            
+            # 反转站点和路径点列表
+            self.route.stops.reverse()
+            self.route.path_points.reverse()
+            self.route.direction *= -1
+            
+            # 重置状态以从新的起点开始
+            self.current_path_index = 0
+            self.current_stop_index = -1
+            self.progress_to_next = 0.0
         
         # 更新当前位置
         self._update_position()

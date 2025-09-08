@@ -42,7 +42,7 @@ class BusManager:
                         x=float(node.get("properties", {}).get("location", {}).get("x", 0)),
                         y=float(node.get("properties", {}).get("location", {}).get("y", 0)),
                         name=node.get("name", station_id),
-                        wait_time_s=10.0  # 默认停靠10秒
+                        wait_time_s=3.0  # 默认停靠10秒
                     )
                     stops.append(stop)
             
