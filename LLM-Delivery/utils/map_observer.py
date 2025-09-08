@@ -877,6 +877,7 @@ class MapObserver(MapCanvasBase):
         self._dm_registry: List[Any] = []
         self._order_manager = None
         self._comms = None  # NEW: CommsSystem 来源
+        self._bus_manager = None  # NEW: BusManager 来源
 
         # 虚拟时间（用于非移动事件）
         self.clock: VirtualClock = clock if clock is not None else VirtualClock()
@@ -925,6 +926,10 @@ class MapObserver(MapCanvasBase):
         self._light_items: Dict[str, Optional[QGraphicsPathItem]] = {}
         self._rescue_items: Dict[str, Optional[QGraphicsPathItem]] = {}
         self._es_text_items: Dict[str, Optional[pg.TextItem]] = {}  # 车已停车时在车旁显示 "ES ..."
+        
+        # 公交显示
+        self._bus_items: Dict[str, Optional[pg.ScatterPlotItem]] = {}  # 公交车位置
+        self._bus_text_items: Dict[str, Optional[pg.TextItem]] = {}    # 公交状态文字
 
     # ---------- 顶部按钮 ----------
     def _on_show_orders_clicked(self):
@@ -971,6 +976,7 @@ class MapObserver(MapCanvasBase):
     # ---------- 兼容 & 注册 ----------
     def attach_order_manager(self, om): self._order_manager = om
     def attach_comms(self, comms): self._comms = comms
+    def attach_bus_manager(self, bus_mgr): self._bus_manager = bus_mgr
 
     def register_delivery_man(self, dm_obj: Any):
         if dm_obj not in self._dm_registry:
@@ -1167,6 +1173,11 @@ class MapObserver(MapCanvasBase):
             self._update_es_text(aid)      # 车已停车时在车旁显示 "ES ..."
             self._update_rescue(aid)
             self._update_car_badge(aid)
+        
+        # 更新公交显示
+        if self._bus_manager:
+            self._bus_manager.update_all_buses()
+            self._update_all_buses()
 
     # ---------- 叠加层聚合 ----------
     def _refresh_overlays(self, aid: str):
@@ -1624,3 +1635,90 @@ class MapObserver(MapCanvasBase):
         except Exception:
             pass
         if also_print: print(msg)
+
+    # ---------- 公交显示 ----------
+    def _update_all_buses(self):
+        """更新所有公交显示"""
+        if not self._bus_manager:
+            return
+        
+        # 获取所有公交车
+        all_buses = list(self._bus_manager.buses.values())
+        current_bus_ids = set(bus.id for bus in all_buses)
+        
+        # 移除不存在的公交
+        for bus_id in list(self._bus_items.keys()):
+            if bus_id not in current_bus_ids:
+                self._remove_bus(bus_id)
+        
+        # 更新或创建公交显示
+        for bus in all_buses:
+            self._update_bus(bus)
+    
+    def _remove_bus(self, bus_id: str):
+        """移除公交显示"""
+        # 移除公交图标
+        bus_item = self._bus_items.pop(bus_id, None)
+        if bus_item:
+            try:
+                self.plot.removeItem(bus_item)
+            except Exception:
+                pass
+        
+        # 移除公交文字
+        bus_text = self._bus_text_items.pop(bus_id, None)
+        if bus_text:
+            try:
+                self.plot.removeItem(bus_text)
+            except Exception:
+                pass
+    
+    def _update_bus(self, bus):
+        """更新单个公交显示"""
+        bus_id = bus.id
+        
+        # 公交图标
+        bus_item = self._bus_items.get(bus_id)
+        if bus_item is None:
+            # 创建新的公交图标
+            bus_item = pg.ScatterPlotItem(
+                pos=[(bus.x, bus.y)], size=20,
+                brush=pg.mkBrush("#FF6B35"),  # 橙色
+                pen=pg.mkPen("#000000", width=2),
+                symbol="s", antialias=True  # 方形表示公交
+            )
+            bus_item.setZValue(AGENT_Z + 10)  # 比agent高一点
+            self.plot.addItem(bus_item)
+            self._bus_items[bus_id] = bus_item
+        else:
+            # 更新位置
+            bus_item.setData(pos=[(bus.x, bus.y)])
+        
+        # 公交状态文字
+        status_text = f"Bus {bus_id}"
+        if bus.state.value == "stopped":
+            current_stop = bus.get_current_stop()
+            if current_stop:
+                status_text += f" @ {current_stop.name or current_stop.id}"
+        elif bus.state.value == "moving":
+            next_stop = bus.get_next_stop()
+            if next_stop:
+                status_text += f" → {next_stop.name or next_stop.id}"
+        
+        status_text += f" ({len(bus.passengers)}p)"
+        
+        bus_text = self._bus_text_items.get(bus_id)
+        if bus_text is None:
+            # 创建新的公交文字
+            bus_text = pg.TextItem(text=status_text, color=(0, 0, 0))
+            bus_text.setAnchor((0.5, 1.5))  # 文字在公交上方
+            bus_text.setFont(self._label_font)
+            bus_text.setPos(bus.x, bus.y)
+            bus_text.setZValue(AGENT_Z + 20)
+            self.plot.addItem(bus_text)
+            self._bus_text_items[bus_id] = bus_text
+        else:
+            # 更新文字内容和位置
+            bus_text.setText(status_text)
+            bus_text.setPos(bus.x, bus.y)
+            bus_text.setZValue(AGENT_Z + 20)
