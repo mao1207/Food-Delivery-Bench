@@ -5,6 +5,7 @@ import time
 import math
 from dataclasses import dataclass, field
 from enum import Enum
+from threading import Lock
 from typing import List, Tuple, Optional, Dict, Any
 
 from Base.Timer import VirtualClock
@@ -46,8 +47,8 @@ class Bus:
     state: BusState = BusState.WAITING
     
     # 路线进度
-    current_stop_index: int = -1
-    current_path_index: int = 0
+    current_stop_index: int = -1    # 当前站点（上一个到达的站点） current_stop_index + 1 是正在前往的站点
+    current_path_index: int = 0     # 当前路径点（上一个到达的路径点）
     progress_to_next: float = 0.0  # 到下一个路径点的进度 [0,1]
     
     # 时间控制
@@ -58,6 +59,9 @@ class Bus:
     passengers: List[str] = field(default_factory=list)  # 乘客ID列表
     
     def __post_init__(self):
+        # 初始化锁
+        self._lock = Lock()
+        
         # 初始化到第一个路径点（path[0]）
         if self.route.path_points:
             first_point = self.route.path_points[0]
@@ -236,27 +240,58 @@ class Bus:
     def is_at_stop(self) -> bool:
         """是否在站点停靠"""
         return self.state == BusState.STOPPED
-    
-    def can_board(self) -> bool:
-        """是否可以上车"""
-        return self.is_at_stop()
-    
+
     def board_passenger(self, passenger_id: str) -> bool:
         """乘客上车"""
-        if self.can_board() and passenger_id not in self.passengers:
-            self.passengers.append(passenger_id)
-            print(f"Passenger {passenger_id} boarded bus {self.id}")
-            return True
-        return False
+        with self._lock:
+            if self.is_at_stop() and passenger_id not in self.passengers:
+                self.passengers.append(passenger_id)
+                print(f"Passenger {passenger_id} boarded bus {self.id}")
+                return True
+            return False
     
     def alight_passenger(self, passenger_id: str) -> bool:
         """乘客下车"""
-        if passenger_id in self.passengers:
-            self.passengers.remove(passenger_id)
-            print(f"Passenger {passenger_id} alighted from bus {self.id}")
-            return True
-        return False
+        with self._lock:
+            if passenger_id in self.passengers:
+                self.passengers.remove(passenger_id)
+                print(f"Passenger {passenger_id} alighted from bus {self.id}")
+                return True
+            return False
     
+    def _calculate_time_to_next_stop(self) -> Optional[float]:
+        """计算到达下一站的时间（秒）"""
+        if not self.route.stops or self.state != BusState.MOVING:
+            return None
+        
+        next_stop = self.get_next_stop()
+        if not next_stop:
+            return None
+        
+        # 计算到下一站的距离
+        distance_cm = math.hypot(next_stop.x - self.x, next_stop.y - self.y)
+        
+        if distance_cm > 0 and self.route.speed_cm_s > 0:
+            return distance_cm / self.route.speed_cm_s
+        
+        return None
+    
+    def _get_remaining_stop_time(self) -> Optional[float]:
+        """获取在当前站点的剩余停靠时间（秒）"""
+        if self.state != BusState.STOPPED:
+            return None
+        
+        current_stop = self.get_current_stop()
+        if not current_stop:
+            return None
+        
+        now = self.clock.now_sim()
+        elapsed_time = now - self.stop_start_time
+        remaining_time = current_stop.wait_time_s - elapsed_time
+        
+        # 返回剩余时间，如果已经超时则返回0
+        return max(0.0, remaining_time)
+
     def get_status_text(self) -> str:
         """获取状态文本"""
         status_parts = [f"Bus {self.id}"]
@@ -265,10 +300,22 @@ class Bus:
             stop = self.get_current_stop()
             stop_name = stop.name if stop else "Unknown"
             status_parts.append(f"stopped at {stop_name}")
+            
+            # 添加剩余停靠时间
+            remaining_time = self._get_remaining_stop_time()
+            if remaining_time is not None:
+                status_parts.append(f"departing in: {remaining_time:.1f}s")
+                
         elif self.state == BusState.MOVING:
             next_stop = self.get_next_stop()
             next_name = next_stop.name if next_stop else "Unknown"
             status_parts.append(f"moving to {next_name}")
+            
+            # 添加到达时间
+            time_to_next = self._calculate_time_to_next_stop()
+            if time_to_next is not None:
+                status_parts.append(f"ETA: {time_to_next:.1f}s")
+                
         else:
             status_parts.append(f"state: {self.state.value}")
         

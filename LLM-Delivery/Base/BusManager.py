@@ -42,7 +42,7 @@ class BusManager:
                         x=float(node.get("properties", {}).get("location", {}).get("x", 0)),
                         y=float(node.get("properties", {}).get("location", {}).get("y", 0)),
                         name=node.get("name", station_id),
-                        wait_time_s=3.0  # 默认停靠10秒
+                        wait_time_s=10.0  # 默认停靠10秒
                     )
                     stops.append(stop)
             
@@ -170,15 +170,6 @@ class BusManager:
     def get_all_buses_status(self) -> List[str]:
         """获取所有公交车状态"""
         return [bus.get_status_text() for bus in self.buses.values()]
-    
-    def start_auto_update(self, interval_ms: int = 100):
-        """启动自动更新（需要外部定时器调用）"""
-        # 这里只是标记，实际更新需要外部调用 update_all_buses
-        print(f"Bus system auto-update configured with {interval_ms}ms interval")
-    
-    def stop_auto_update(self):
-        """停止自动更新"""
-        print("Bus system auto-update stopped")
     
     def get_route_info(self, route_id: str) -> Optional[Dict[str, Any]]:
         """获取路线信息"""

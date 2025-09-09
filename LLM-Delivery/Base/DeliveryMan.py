@@ -73,7 +73,7 @@ class TransportMode(str, Enum):
 
 # ===== Speeds (cm/s) =====
 DEFAULT_AVG_SPEED_CM_S = {
-    TransportMode.WALK:          1350.0,
+    TransportMode.WALK:          135.0,
     TransportMode.SCOOTER:       800.0,
     TransportMode.DRAG_SCOOTER:  800.0,
     TransportMode.CAR:           2000.0,
@@ -112,8 +112,6 @@ class DMActionKind(str, Enum):
     RENT_CAR             = "rent_car"
     RETURN_CAR           = "return_car"
     BOARD_BUS            = "board_bus"
-    ALIGHT_BUS           = "alight_bus"
-    WAIT_FOR_BUS         = "wait_for_bus"
 
 @dataclass
 class DMAction:
@@ -249,9 +247,7 @@ class DeliveryMan:
             DMActionKind.SWITCH_TRANSPORT:    self._handle_switch_transport,
             DMActionKind.RENT_CAR:            self._handle_rent_car,
             DMActionKind.RETURN_CAR:          self._handle_return_car,
-            DMActionKind.BOARD_BUS:           self._handle_board_bus,
-            DMActionKind.ALIGHT_BUS:          self._handle_alight_bus,
-            DMActionKind.WAIT_FOR_BUS:        self._handle_wait_for_bus,
+            DMActionKind.BOARD_BUS:           self._handle_board_bus
         }
         self._recalc_towing()
 
@@ -668,6 +664,8 @@ class DeliveryMan:
     #         return None
 
     def _default_decider(self) -> Optional[DMAction]:
+        return None
+        
         input_prompt = self.build_vlm_input()
         self.vlm_last_compiled_input = input_prompt
 
@@ -743,7 +741,7 @@ class DeliveryMan:
                     return DMAction(DMActionKind.MOVE_TO, data=dict(tx=dx, ty=dy, use_route=True, snap_cm=120.0))
             return None
 
-        # 待取 -> 去店（选最近取餐点；到店由 _on_view_event 触发“强制取餐”）
+        # 待取 -> 去店（选最近取餐点；到店由 _on_view_event 触发"强制取餐"）
         if pending_pick:
             def _d_to_pu(o):
                 n = getattr(o, "pickup_node", None)
@@ -765,7 +763,7 @@ class DeliveryMan:
                         tx, ty = tgt
                         if not _at(tx, ty, tol=400.0):
                             return DMAction(DMActionKind.MOVE_TO, data=dict(tx=tx, ty=ty, use_route=True, snap_cm=120.0))
-                # 若 ready_now 为真，不在这里下指令；让顶部的“到店即取”分支触发 PICKUP
+                # 若 ready_now 为真，不在这里下指令；让顶部的"到店即取"分支触发 PICKUP
             return None
 
         # 没单 -> 接单（选最近取餐点的订单）
@@ -1453,108 +1451,76 @@ class DeliveryMan:
         """上车动作"""
         self.vlm_clear_ephemeral()
         if not self._bus_manager:
-            self.vlm_add_error("board_bus failed: no bus manager"); self._finish_action(success=False); return
+            self.vlm_add_error("board_bus failed: no bus manager")
+            self._finish_action(success=False)
+            print("board_bus failed: no bus manager")
+            return
         
         bus_id = act.data.get("bus_id")
+        target_stop_id = act.data.get("target_stop")
+        
         if not bus_id:
-            self.vlm_add_error("board_bus failed: need bus_id"); self._finish_action(success=False); return
+            self.vlm_add_error("board_bus failed: need bus_id")
+            self._finish_action(success=False)
+            print("board_bus failed: need bus_id")
+            return
+        
+        if not target_stop_id:
+            self.vlm_add_error("board_bus failed: need target_stop")
+            self._finish_action(success=False)
+            print("board_bus failed: need target_stop")
+            return
         
         bus = self._bus_manager.get_bus(bus_id)
         if not bus:
-            self.vlm_add_error(f"board_bus failed: bus {bus_id} not found"); self._finish_action(success=False); return
+            self.vlm_add_error(f"board_bus failed: bus {bus_id} not found")
+            self._finish_action(success=False)
+            print(f"board_bus failed: bus {bus_id} not found")
+            return
         
-        # 检查是否在公交附近
-        distance = math.hypot(self.x - bus.x, self.y - bus.y)
-        if distance > 500.0:  # 5米内才能上车
-            self.vlm_add_error("board_bus failed: not near bus"); self._finish_action(success=False); return
+        # 检查bus是否在当前车站且为stopped状态
+        if not bus.is_at_stop() or math.hypot(bus.x - self.x, bus.y - self.y) > 300.0:
+            self.vlm_add_error(f"board_bus failed: bus {bus_id} not at stop")
+            self._finish_action(success=False)
+            print(f"board_bus failed: bus {bus_id} not at stop")
+            return
         
-        if not bus.can_board():
-            self.vlm_add_error("board_bus failed: bus not at stop"); self._finish_action(success=False); return
+        # 验证目标站点是否在bus的路线上
+        target_stop = None
+        for stop in bus.route.stops:
+            if stop.id == target_stop_id:
+                target_stop = stop
+                break
+        
+        if not target_stop:
+            self.vlm_add_error(f"board_bus failed: target stop {target_stop_id} not on bus route")
+            self._finish_action(success=False)
+            print(f"board_bus failed: target stop {target_stop_id} not on bus route")
+            return
+        
+        # 检查当前站点是否就是目标站点（避免无意义的上车）
+        current_stop = bus.get_current_stop()
+        if current_stop and current_stop.id == target_stop_id:
+            self.vlm_add_error(f"board_bus failed: already at target stop {target_stop_id}")
+            self._finish_action(success=False)
+            print(f"board_bus failed: already at target stop {target_stop_id}")
+            return
         
         # 上车
         if bus.board_passenger(str(self.agent_id)):
             self._bus_ctx = {
                 "bus_id": bus_id,
-                "boarding_stop": bus.get_current_stop().id if bus.get_current_stop() else "",
-                "target_stop": act.data.get("target_stop", ""),
+                "boarding_stop": current_stop.id if current_stop else "",
+                "target_stop": target_stop_id,
                 "boarded_time": self.clock.now_sim()
             }
             self.set_mode(TransportMode.BUS)
-            self._log(f"boarded bus {bus_id}")
+            self._log(f"boarded bus {bus_id} at {current_stop.id if current_stop else 'unknown'} heading to {target_stop_id}")
             self._register_success(f"boarded bus {bus_id}")
-            self._finish_action(success=True)
         else:
-            self.vlm_add_error("board_bus failed: could not board"); self._finish_action(success=False)
-
-    def _handle_alight_bus(self, _self, act: DMAction, _allow_interrupt: bool):
-        """下车动作"""
-        self.vlm_clear_ephemeral()
-        if not self._bus_ctx:
-            self.vlm_add_error("alight_bus failed: not on bus"); self._finish_action(success=False); return
-        
-        bus_id = self._bus_ctx.get("bus_id")
-        bus = self._bus_manager.get_bus(bus_id) if self._bus_manager else None
-        if not bus:
-            self.vlm_add_error("alight_bus failed: bus not found"); self._finish_action(success=False); return
-        
-        # 检查是否在目标站点
-        target_stop_id = act.data.get("stop_id") or self._bus_ctx.get("target_stop")
-        if target_stop_id:
-            current_stop = bus.get_current_stop()
-            if not current_stop or current_stop.id != target_stop_id:
-                self.vlm_add_error(f"alight_bus failed: not at target stop {target_stop_id}"); self._finish_action(success=False); return
-        
-        # 下车
-        if bus.alight_passenger(str(self.agent_id)):
-            # 更新位置到公交当前位置
-            self.x = bus.x
-            self.y = bus.y
-            self._bus_ctx = None
-            self.set_mode(TransportMode.WALK)  # 下车后改为步行
-            self._log(f"alighted from bus {bus_id}")
-            self._register_success(f"alighted from bus {bus_id}")
-            self._finish_action(success=True)
-        else:
-            self.vlm_add_error("alight_bus failed: could not alight"); self._finish_action(success=False)
-
-    def _handle_wait_for_bus(self, _self, act: DMAction, _allow_interrupt: bool):
-        """等车动作"""
-        self.vlm_clear_ephemeral()
-        if not self._bus_manager:
-            self.vlm_add_error("wait_for_bus failed: no bus manager"); self._finish_action(success=False); return
-        
-        stop_id = act.data.get("stop_id")
-        route_id = act.data.get("route_id")
-        max_wait_s = float(act.data.get("max_wait_s", 300.0))  # 默认等5分钟
-        
-        if not stop_id:
-            self.vlm_add_error("wait_for_bus failed: need stop_id"); self._finish_action(success=False); return
-        
-        # 检查是否在站点附近
-        nearest_stop, distance = self._bus_manager.find_nearest_bus_stop(self.x, self.y)
-        if not nearest_stop or nearest_stop.id != stop_id or distance > 500.0:
-            self.vlm_add_error(f"wait_for_bus failed: not at stop {stop_id}"); self._finish_action(success=False); return
-        
-        # 查找该站点的公交车
-        buses_at_stop = self._bus_manager.find_buses_at_stop(stop_id)
-        if route_id:
-            buses_at_stop = [bus for bus in buses_at_stop if bus.route.id == route_id]
-        
-        if buses_at_stop:
-            # 有车在站，可以上车
-            bus = buses_at_stop[0]  # 选择第一辆车
-            self._log(f"bus {bus.id} available at stop {stop_id}")
-            self._register_success(f"found bus {bus.id} at stop")
-            self._finish_action(success=True)
-        else:
-            # 没车，开始等待
-            self._wait_ctx = {
-                "start_sim": self.clock.now_sim(),
-                "end_sim": self.clock.now_sim() + max_wait_s,
-                "stop_id": stop_id,
-                "route_id": route_id
-            }
-            self._log(f"waiting for bus at stop {stop_id} (max {max_wait_s}s)")
+            self.vlm_add_error("board_bus failed: could not board")
+            self._finish_action(success=False)
+            print("board_bus failed: could not board")
 
     def _update_bus_riding(self, now: float):
         """更新乘坐公交状态"""
@@ -1563,12 +1529,6 @@ class DeliveryMan:
         
         bus_id = self._bus_ctx.get("bus_id")
         bus = self._bus_manager.get_bus(bus_id)
-        if not bus:
-            # 公交不存在，强制下车
-            self._bus_ctx = None
-            self.set_mode(TransportMode.WALK)
-            self._log("bus disappeared, switched to walk")
-            return
         
         # 跟随公交位置
         self.x = bus.x
@@ -1581,4 +1541,8 @@ class DeliveryMan:
             if current_stop and current_stop.id == target_stop_id:
                 # 到达目标站点，自动下车
                 self._log(f"arrived at target stop {target_stop_id}, auto alighting")
-                self.enqueue_action(DMAction(DMActionKind.ALIGHT_BUS, data={"stop_id": target_stop_id}))
+                self.set_mode(TransportMode.WALK)
+                if self._ue and hasattr(self._ue, "teleport_xy"): 
+                    self._ue.teleport_xy(str(self.agent_id), float(self.x), float(self.y))
+                self._bus_ctx = None
+                self._finish_action(success=True)

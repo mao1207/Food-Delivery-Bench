@@ -36,7 +36,7 @@ def main():
     nodes = _load_world_nodes(WORLD_JSON)
 
     # Clock
-    clock = VirtualClock(time_scale=3.0)  # 3倍时间加速
+    clock = VirtualClock(time_scale=1.0)  # 3倍时间加速
 
     # --- 公交系统初始化 ---
     bus_manager = BusManager(clock=clock)
@@ -53,16 +53,16 @@ def main():
         
         # 创建3辆公交车，错开发车时间
         bus1 = bus_manager.create_bus("bus_001", route_id)
-        # bus2 = bus_manager.create_bus("bus_002", route_id)
+        bus2 = bus_manager.create_bus("bus_002", route_id)
         # bus3 = bus_manager.create_bus("bus_003", route_id)
         
         # # 让第二辆和第三辆车错开发车
-        # if bus2 and bus2.route.stops:
-        #     bus2.current_stop_index = 1  # 从第二个站点开始
-        #     bus2.x = bus2.route.stops[1].x
-        #     bus2.y = bus2.route.stops[1].y
-        #     bus2.state = bus2.state.__class__.STOPPED
-        #     bus2.stop_start_time = clock.now_sim() - 5.0  # 提前5秒到达
+        if bus2 and bus2.route.stops:
+            bus2.current_path_index = 2
+            bus2.current_stop_index = 0  # 从第二个站点开始
+            bus2.x = bus2.route.stops[1].x
+            bus2.y = bus2.route.stops[1].y
+            bus2.state = bus2.state.__class__.MOVING
             
         # if bus3 and bus3.route.stops:
         #     bus3.current_stop_index = 2  # 从第三个站点开始
@@ -91,7 +91,7 @@ def main():
         print("-" * 60)
 
     status_timer = QTimer(v)
-    status_timer.setInterval(5000)  # 每5秒打印一次
+    status_timer.setInterval(1000)  # 每5秒打印一次
     status_timer.timeout.connect(print_status)
     status_timer.start()
 
