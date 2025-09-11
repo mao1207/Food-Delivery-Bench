@@ -1,0 +1,941 @@
+{
+  "bus station": {
+    "GEN_POI_BusStation_0_764": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_0_764",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -19524.46727992636,
+        "y": -19000.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 360.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_1_598": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_1_598",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -38857.1048741077,
+        "y": -21000.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_2_438": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_2_438",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -41000.0,
+        "y": -36552.72662942724,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_3_919": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_3_919",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -29243.286749351966,
+        "y": -41000.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_4_597": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_4_597",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -19000.0,
+        "y": -32493.816407970644,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 270.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_5_408": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_5_408",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -21000.0,
+        "y": -12251.250559570304,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_6_370": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_6_370",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -25583.570007096023,
+        "y": 1000.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 360.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_7_224": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_7_224",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -39000.0,
+        "y": -3352.6024988096424,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -270.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_8_141": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_8_141",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -46857.525195164024,
+        "y": -21000.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "scale": null
+    },
+    "GEN_POI_BusStation_9_521": {
+      "bbox": null,
+      "id": "GEN_POI_BusStation_9_521",
+      "instance_name": "POI_BusStation",
+      "location": {
+        "x": -59000.0,
+        "y": -15444.599080198783,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 270.0
+      },
+      "scale": null
+    }
+  },
+  "car rental": {
+    "GEN_BP_Building_125_C_77": {
+      "bbox": {
+        "x": 10240.0078125,
+        "y": 8239.9990234375,
+        "z": 32041.349609375
+      },
+      "id": "GEN_BP_Building_125_C_77",
+      "instance_name": "BP_Building_125_C",
+      "location": {
+        "x": -13180.0,
+        "y": -27820.0,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 90.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": -90.0,
+        "end": {
+          "x": -200.0,
+          "y": -400.0
+        },
+        "start": {
+          "x": -200.0,
+          "y": -200.0
+        }
+      }
+    },
+    "GEN_BP_Building_75_C_20": {
+      "bbox": {
+        "x": 1272.7906494140625,
+        "y": 1272.792236328125,
+        "z": 7080.45068359375
+      },
+      "id": "GEN_BP_Building_75_C_20",
+      "instance_name": "BP_Building_75_C",
+      "location": {
+        "x": 9976.82,
+        "y": 3336.4,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 180.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 0.0,
+        "end": {
+          "x": 200.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  },
+  "charging station": {
+    "GEN_POI_ChargingStation_Road_0_517": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_0_517",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": 4311.733358062294,
+        "y": 1200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_10_677": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_10_677",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -32864.005707008924,
+        "y": -1200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_11_875": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_11_875",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -33822.95677104169,
+        "y": -1200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_12_284": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_12_284",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -35130.77133457377,
+        "y": 1200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_13_166": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_13_166",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -41200.0,
+        "y": -11899.5822197016,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_14_718": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_14_718",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": 38800.0,
+        "y": -7973.789803185301,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_1_733": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_1_733",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -23371.50357557409,
+        "y": -21200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_2_225": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_2_225",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -7181.450369736697,
+        "y": -21200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_3_777": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_3_777",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -38800.0,
+        "y": -11249.719574262723,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_4_348": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_4_348",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -41200.0,
+        "y": -25235.23042927646,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_5_104": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_5_104",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -21200.0,
+        "y": -5176.712997364942,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_6_867": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_6_867",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -8318.982208922722,
+        "y": 1200.0,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 180.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_7_747": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_7_747",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": 41200.0,
+        "y": -11452.164439136475,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_8_80": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_8_80",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -41200.0,
+        "y": -10507.19328036581,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    },
+    "GEN_POI_ChargingStation_Road_9_591": {
+      "bbox": null,
+      "id": "GEN_POI_ChargingStation_Road_9_591",
+      "instance_name": "POI_ChargingStation_Road",
+      "location": {
+        "x": -21200.0,
+        "y": -27104.495939699304,
+        "z": 0.0
+      },
+      "orientation": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": -90.0
+      },
+      "scale": null
+    }
+  },
+  "hospital": {
+    "GEN_BP_Building_07_C_100": {
+      "bbox": {
+        "x": 2382.5126953125,
+        "y": 2382.5126953125,
+        "z": 9145.854125976562
+      },
+      "id": "GEN_BP_Building_07_C_100",
+      "instance_name": "BP_Building_07_C",
+      "location": {
+        "x": -36108.74,
+        "y": -33501.25,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 90.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": -90.0,
+        "end": {
+          "x": -400.0,
+          "y": -400.0
+        },
+        "start": {
+          "x": -400.0,
+          "y": -200.0
+        }
+      }
+    }
+  },
+  "rest area": {
+    "GEN_BP_Building_36_C_27": {
+      "bbox": {
+        "x": 1424.988281093756,
+        "y": 2537.255974503416,
+        "z": 4755.332157771729
+      },
+      "id": "GEN_BP_Building_36_C_27",
+      "instance_name": "BP_Building_36_C",
+      "location": {
+        "x": -3412.49,
+        "y": -3968.63,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 180.0,
+        "end": {
+          "x": -200.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    "GEN_BP_Building_40_C_91": {
+      "bbox": {
+        "x": 7291.999489439941,
+        "y": 3967.302352874023,
+        "z": 8153.4107407980955
+      },
+      "id": "GEN_BP_Building_40_C_91",
+      "instance_name": "BP_Building_40_C",
+      "location": {
+        "x": -359.52,
+        "y": -15316.35,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 180.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 0.0,
+        "end": {
+          "x": 0.0,
+          "y": -200.0
+        },
+        "start": {
+          "x": -200.0,
+          "y": -200.0
+        }
+      }
+    }
+  },
+  "restaurant": {
+    "GEN_BP_Building_05_C_18": {
+      "bbox": {
+        "x": 2894.26123046875,
+        "y": 2744.41015625,
+        "z": 1202.37060546875
+      },
+      "id": "GEN_BP_Building_05_C_18",
+      "instance_name": "BP_Building_05_C",
+      "location": {
+        "x": 6581.43,
+        "y": 4072.21,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 180.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 0.0,
+        "end": {
+          "x": 200.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    "GEN_BP_Building_07_C_96": {
+      "bbox": {
+        "x": 2382.5126953125,
+        "y": 2382.5126953125,
+        "z": 9145.854125976562
+      },
+      "id": "GEN_BP_Building_07_C_96",
+      "instance_name": "BP_Building_07_C",
+      "location": {
+        "x": -43891.26,
+        "y": -38689.61,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 270.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": -90.0,
+        "end": {
+          "x": -400.0,
+          "y": -400.0
+        },
+        "start": {
+          "x": -400.0,
+          "y": -200.0
+        }
+      }
+    },
+    "GEN_BP_Building_48_C_109": {
+      "bbox": {
+        "x": 5244.721191781251,
+        "y": 3817.13876321094,
+        "z": 12492.63411799951
+      },
+      "id": "GEN_BP_Building_48_C_109",
+      "instance_name": "BP_Building_48_C",
+      "location": {
+        "x": -26347.17,
+        "y": -44608.57,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 0.0,
+        "end": {
+          "x": -200.0,
+          "y": -400.0
+        },
+        "start": {
+          "x": -400.0,
+          "y": -400.0
+        }
+      }
+    },
+    "GEN_BP_Building_49_C_50": {
+      "bbox": {
+        "x": 5409.94677734375,
+        "y": 3356.4260597541434,
+        "z": 11477.065689561523
+      },
+      "id": "GEN_BP_Building_49_C_50",
+      "instance_name": "BP_Building_49_C",
+      "location": {
+        "x": -24378.21,
+        "y": -10996.47,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 270.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": -90.0,
+        "end": {
+          "x": -200.0,
+          "y": -200.0
+        },
+        "start": {
+          "x": -200.0,
+          "y": 0.0
+        }
+      }
+    },
+    "GEN_BP_Building_82_C_29": {
+      "bbox": {
+        "x": 5198.03173828125,
+        "y": 3011.652877807617,
+        "z": 5083.369873046875
+      },
+      "id": "GEN_BP_Building_82_C_29",
+      "instance_name": "BP_Building_82_C",
+      "location": {
+        "x": -13027.63,
+        "y": -4205.83,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 180.0,
+        "end": {
+          "x": -200.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    }
+  },
+  "store": {
+    "GEN_BP_Building_03_C_105": {
+      "bbox": {
+        "x": 2508.927734375,
+        "y": 2358.631103515625,
+        "z": 3323.157958984375
+      },
+      "id": "GEN_BP_Building_03_C_105",
+      "instance_name": "BP_Building_03_C",
+      "location": {
+        "x": -63879.32,
+        "y": -16194.66,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 270.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 90.0,
+        "end": {
+          "x": -600.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": -600.0,
+          "y": -200.0
+        }
+      }
+    },
+    "GEN_BP_Building_126_C_48": {
+      "bbox": {
+        "x": 4639.99853515625,
+        "y": 7039.998046875,
+        "z": 21200.96142578125
+      },
+      "id": "GEN_BP_Building_126_C_48",
+      "instance_name": "BP_Building_126_C",
+      "location": {
+        "x": -34804.93,
+        "y": -6220.0,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 180.0,
+        "end": {
+          "x": -400.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": -200.0,
+          "y": 0.0
+        }
+      }
+    },
+    "GEN_BP_Building_36_C_30": {
+      "bbox": {
+        "x": 1424.988281093756,
+        "y": 2537.255974503416,
+        "z": 4755.332157771729
+      },
+      "id": "GEN_BP_Building_36_C_30",
+      "instance_name": "BP_Building_36_C",
+      "location": {
+        "x": -16346.64,
+        "y": -3968.63,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 180.0,
+        "end": {
+          "x": -200.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    "GEN_BP_Building_36_C_34": {
+      "bbox": {
+        "x": 1424.988281093756,
+        "y": 2537.255974503416,
+        "z": 4755.332157771729
+      },
+      "id": "GEN_BP_Building_36_C_34",
+      "instance_name": "BP_Building_36_C",
+      "location": {
+        "x": 27769.4,
+        "y": 3968.63,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 180.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 0.0,
+        "end": {
+          "x": 400.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": 200.0,
+          "y": 0.0
+        }
+      }
+    },
+    "GEN_BP_Building_72_C_45": {
+      "bbox": {
+        "x": 3438.4462890625,
+        "y": 3744.515380859375,
+        "z": 6220.43310546875
+      },
+      "id": "GEN_BP_Building_72_C_45",
+      "instance_name": "BP_Building_72_C",
+      "location": {
+        "x": -24419.22,
+        "y": -4572.26,
+        "z": 0
+      },
+      "orientation": {
+        "pitch": 0,
+        "roll": 0,
+        "yaw": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "segment_assignment": {
+        "angle": 180.0,
+        "end": {
+          "x": -400.0,
+          "y": 0.0
+        },
+        "start": {
+          "x": -200.0,
+          "y": 0.0
+        }
+      }
+    }
+  }
+}
