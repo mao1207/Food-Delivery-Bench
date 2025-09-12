@@ -401,7 +401,7 @@ class DeliveryMan:
 
         # 提交线程任务：仅做网络调用
         def _call():
-            resp = self._vlm_client.generate(prompt=prompt, images=images)
+            resp = self._vlm_client.generate(user_prompt=prompt, images=images)
             return {"token": token, "resp": resp}
 
         self._vlm_future = self._vlm_executor.submit(_call)
@@ -520,7 +520,7 @@ class DeliveryMan:
         if self._vlm_client is None:
             raise RuntimeError("VLM client not set. Call set_vlm_client(client) first.")
         images = self.vlm_collect_images()
-        return self._vlm_client.generate(prompt=compiled_prompt, images=images)
+        return self._vlm_client.generate(user_prompt=compiled_prompt, images=images)
 
     # ===== pause/resume =====
     def _ctx_mark_pause(self, ctx: Optional[Dict[str, float]], now: float):
@@ -1144,7 +1144,9 @@ class DeliveryMan:
 
 
     def build_vlm_input(self) -> str:
-        parts: List[str] = ["### system_prompt\n "+self.vlm_prompt]
+        """分离system prompt和user prompt, 把不变的内容放在system prompt中, 把可变的内容放在user prompt中"""
+        # parts: List[str] = ["### system_prompt\n "+self.vlm_prompt]
+        parts: List[str] = []
         if self.vlm_past_memory:
             parts.append("### past_memory"); parts += [f"- {m}" for m in self.vlm_past_memory]
         parts.append("### agent_state"); parts.append(self._agent_state_text())
@@ -1209,7 +1211,7 @@ class DeliveryMan:
             pass
         
         parts.append("### map_snapshot"); parts.append(self._map_brief())
-        parts.append("### action_api"); parts.append(ACTION_API_SPEC.strip())
+        # parts.append("### action_api"); parts.append(ACTION_API_SPEC.strip())
         if self.vlm_last_actions:
             parts.append("### recent_actions")
             actions = list(self.vlm_last_actions)

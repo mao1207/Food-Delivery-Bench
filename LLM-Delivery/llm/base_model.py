@@ -5,6 +5,7 @@ import base64, io, os, time
 import numpy as np
 from PIL import Image
 from openai import OpenAI
+from Base.Prompt import get_system_prompt
 
 
 class BaseModel:
@@ -49,7 +50,7 @@ class BaseModel:
     # --------- 公共入口：只要 prompt + images，返回文本 ---------
     def generate(
         self,
-        prompt: str,
+        user_prompt: str,
         images: Optional[Union[Any, List[Any]]] = None,
         *,
         max_tokens: Optional[int] = None,
@@ -61,7 +62,7 @@ class BaseModel:
         **kwargs,
     ) -> str:
         """
-        prompt: 已在 DeliveryMan 里拼好的完整文本
+        user_prompt: 已在 DeliveryMan 里拼好的完整文本
         images: [img1, img2, img3]（可传少于3张或 None）
         返回：模型文本（str）
         """
@@ -70,8 +71,10 @@ class BaseModel:
         top_p = self.top_p if top_p is None else float(top_p)
         rate = self.rate_limit_per_min if rate_limit_per_min is None else rate_limit_per_min
 
+        messages = [{"role": "system", "content": get_system_prompt()}]
+
         # 组装 user content
-        user_content = [{"type": "text", "text": prompt}]
+        user_content = [{"type": "text", "text": user_prompt}]
 
         if images:
             if not isinstance(images, (list, tuple)):
@@ -85,7 +88,7 @@ class BaseModel:
                     continue
                 user_content.append(self._to_image_part(img))
 
-        messages = [{"role": "user", "content": user_content}]
+        messages.append({"role": "user", "content": user_content})
 
         last_err = None
         for i in range(1, retry + 1):

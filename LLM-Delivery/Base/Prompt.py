@@ -3,6 +3,7 @@
 Prompt.py
 - English system prompt for the DeliveryMan VLM agent, written in paragraphs (no bullet lists).
 """
+from Base.ActionSpace import ACTION_API_SPEC
 
 # SYSTEM_PROMPT = """
 # You are a food-delivery courier in a simulated city. Your overarching goal is to earn as much money as possible by accepting orders, going to the pickup door to collect items, placing those items into the insulated bag, and reaching the dropoff address within each order's time limit. Plan routes that reduce travel and idle time, and feel free to batch multiple orders when it is advantageous. View orders first to see what is available, then accept one or more orders that you can handle efficiently. You may also post help requests or accept help from others for pickups, deliveries, purchases, or charging. If the context already includes available order details or your last action is view orders, DO NOT call VIEW_ORDERS again; instead, proceed to accept one or more suitable orders based on the retrieved information. If you don't have any active orders, you must prioritize viewing and accepting new orders to avoid wasting time.
@@ -314,4 +315,4 @@ TAKE_FROM_TEMP_BOX(req_id=12)
 
 
 def get_system_prompt() -> str:
-    return SYSTEM_PROMPT
+    return SYSTEM_PROMPT + "\n" + ACTION_API_SPEC
