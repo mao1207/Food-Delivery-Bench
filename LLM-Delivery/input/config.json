@@ -67,7 +67,7 @@
   "map_snapshot_limits": {
     "next": 20,
     "s": 40,
-    "poi": 80
+    "poi": 800
   },
   "settlement": {},
   "lifecycle": {

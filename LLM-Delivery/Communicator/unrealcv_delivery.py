@@ -41,9 +41,9 @@ class UnrealCvDelivery(UnrealCV):
             cmd = f"vbp {object_name} TurnAround {angle} {clockwise}"
             self.client.request(cmd)
 
-    def d_step_forward(self, object_name):
+    def d_step_forward(self, object_name, speed, time):
         with self.lock:
-            cmd = f"vbp {object_name} StepForward"
+            cmd = f"vbp {object_name} StepForward {time}"
             self.client.request(cmd)
 
     def d_stop(self, object_name):

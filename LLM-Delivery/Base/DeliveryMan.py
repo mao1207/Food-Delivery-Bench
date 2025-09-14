@@ -85,6 +85,8 @@ class DMActionKind(str, Enum):
     SAY                  = "say"
     BOARD_BUS            = "board_bus"
     VIEW_BUS_SCHEDULE    = "view_bus_schedule"
+    TURN_AROUND          = "turn_around"
+    STEP_FORWARD         = "step_forward" 
 
 @dataclass
 class DMAction:
@@ -316,6 +318,8 @@ class DeliveryMan:
             DMActionKind.SAY:                  self._handle_say,
             DMActionKind.BOARD_BUS:            self._handle_board_bus,
             DMActionKind.VIEW_BUS_SCHEDULE:    self._handle_view_bus_schedule,
+            DMActionKind.TURN_AROUND:          self._handle_turn_around,
+            DMActionKind.STEP_FORWARD:         self._handle_step_forward,
         }
         self._recalc_towing()
 
@@ -616,7 +620,7 @@ class DeliveryMan:
 
         if event == "move":
             # 先尝试自动送达
-            self._auto_try_dropoff()
+            # self._auto_try_dropoff()
 
             self._refresh_poi_hints_nearby()
 
@@ -1340,7 +1344,7 @@ class DeliveryMan:
 
     # ===== VLM decider =====
     def _default_decider(self) -> Optional[DMAction]:
-        return None
+        # return
         # 不可决策状态：直接返回
         if self._lifecycle_done:
             return None
@@ -1353,7 +1357,7 @@ class DeliveryMan:
 
         # 组 prompt + 渲染图片（这部分必须在主线程；你接受这点）
         prompt = self.build_vlm_input()
-        print(f'Prompt:\n {prompt}')
+        print(f'User Prompt:\n{prompt}')
 
         # 如果你希望渲染不计入虚拟时间，可临时 pause/resume（可选）
         # self.timers_pause()
@@ -1742,9 +1746,27 @@ class DeliveryMan:
             self.vlm_add_error("drop_off failed: order already delivered")
             self._finish_action(success=False); return
 
+        # 检查是否在有效的投递位置
+        allowed_methods = getattr(order_obj, "allowed_delivery_methods", [])
+        is_handoff_allowed = 'hand_to_customer' in allowed_methods
+        handoff_address = getattr(order_obj, "handoff_address", None)
+
+        # 检查是否在 dropoff_node 位置
         dxy = self._xy_of_node(getattr(order_obj, "dropoff_node", None))
-        if not (dxy and self._is_at_xy(dxy[0], dxy[1], tol_cm=tol)):
-            self.vlm_add_error("drop_off failed: not at the drop-off location")
+        at_dropoff = dxy and self._is_at_xy(dxy[0], dxy[1], tol_cm=tol)
+
+        # 检查是否在 handoff_address 位置（仅当允许 hand_to_customer 时）
+        at_handoff = False
+        if is_handoff_allowed and handoff_address:
+            hx, hy = float(handoff_address.x), float(handoff_address.y)
+            at_handoff = self._is_at_xy(hx, hy, tol_cm=tol)
+
+        # 必须在其中一个有效位置
+        if not (at_dropoff or at_handoff):
+            if is_handoff_allowed and handoff_address:
+                self.vlm_add_error("drop_off failed: not at the drop-off location or handoff address")
+            else:
+                self.vlm_add_error("drop_off failed: not at the drop-off location")
             self._finish_action(success=False); return
 
         # 4) 记录交付方式（后续结算可用，但当前不改变 compute_settlement）
@@ -3175,6 +3197,8 @@ class DeliveryMan:
     def poll_time_events(self):
         now = self.clock.now_sim()
 
+        self._auto_try_dropoff()
+
         # === active orders elapsed time ===
         if self._orders_last_tick_sim is None:
             self._orders_last_tick_sim = now
@@ -3239,7 +3263,7 @@ class DeliveryMan:
             elif self._is_at_xy(tx, ty, tol_cm=tol):
                 self._move_ctx = None
                 # 到点先尝试自动投递/结算
-                self._auto_try_dropoff()
+                # self._auto_try_dropoff()
                 if self._current and self._current.kind == DMActionKind.MOVE_TO:
                     self._finish_action(success=True)
 
@@ -3588,7 +3612,7 @@ class DeliveryMan:
             if routes_info:
                 schedule_text += "Routes:\n"
                 for route_id, route_info in routes_info.items():
-                    schedule_text += f"\nRoute {route_info['name']}:\n"
+                    schedule_text += f"\n{route_info['name']}:\n"
                     schedule_text += f"  Stops ({len(route_info['stops'])}):\n"
                     
                     for i, stop in enumerate(route_info['stops']):
@@ -3604,11 +3628,34 @@ class DeliveryMan:
             else:
                 schedule_text += "\nNo buses currently running.\n"
             
+            print(schedule_text)
             # 塞进 ephemeral，供 VLM prompt 使用
             self.vlm_add_ephemeral("bus_schedule", schedule_text)
             self._log("view bus schedule")
             self._finish_action(success=True)
-
         except Exception as e:
             self.vlm_add_error(f"view_bus_schedule failed: {e}")
             self._finish_action(success=False)
+
+
+    # ======low-level actions======
+    def _handle_turn_around(self, _self, act: DMAction, _allow_interrupt: bool):
+        """转身"""
+        try:
+            angle = act.data.get("angle")
+            direction = act.data.get("direction")
+            self._ue.delivery_man_turn_around(self.agent_id, angle, direction)
+            self._finish_action(success=True)
+        except Exception as e:
+            self.vlm_add_error(f"turn_around failed: {e}")
+            self._finish_action(success=False)
+        
+    def _handle_step_forward(self, _self, act: DMAction, _allow_interrupt: bool):
+        """前进一步"""
+        try:
+            self._ue.delivery_man_step_forward(self.agent_id, 100, 1)
+            self._finish_action(success=True)
+        except Exception as e:
+            self.vlm_add_error(f"step_forward failed: {e}")
+            self._finish_action(success=False)
+        

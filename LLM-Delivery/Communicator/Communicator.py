@@ -9,6 +9,7 @@ Communicator.py
 """
 
 import math
+import random
 import re
 import threading
 import time
@@ -70,6 +71,20 @@ class Communicator(UnrealCvDelivery):
         self.delivery_manager_name = "GEN_DeliveryManager"
         with self._send_lock:
             self.spawn_bp_asset(Config.DELIVERY_MANAGER_MODEL_PATH, self.delivery_manager_name)
+
+    def spawn_customer(self, order_id: int, x: float, y: float) -> None:
+        name = f"GEN_CUSTOMER_{order_id}"
+        with self._send_lock:
+            self.spawn_bp_asset(Config.CUSTOMER_MODEL_PATH, name)
+            self.set_location((float(x), float(y), 110.0), name)
+            self.set_orientation((0.0, random.uniform(0, 360), 0.0), name)
+            self.set_scale((1.0, 1.0, 1.0), name)
+            self.set_collision(name, True)
+            self.set_movable(name, True)
+
+    def destroy_customer(self, name: str) -> None:
+        with self._send_lock:
+            self.destroy(name)
 
     # ----------------------------------------------------------- 解析工具 + 就绪等待
     def _parse_vec3(self, raw: Any) -> Optional[Tuple[float, float, float]]:
@@ -171,6 +186,16 @@ class Communicator(UnrealCvDelivery):
         name = self.get_delivery_man_name(delivery_man_id)
         with self._send_lock:
             self.d_stop(name)
+
+    def delivery_man_step_forward(self, delivery_man_id: Any, speed: float, time: float) -> None:   
+        name = self.get_delivery_man_name(delivery_man_id)
+        with self._send_lock:
+            self.d_step_forward(name, speed, time)
+
+    def delivery_man_turn_around(self, delivery_man_id: Any, angle: float, direction: str) -> None:
+        name = self.get_delivery_man_name(delivery_man_id)
+        with self._send_lock:
+            self.d_turn_around(name, angle, direction)
 
     # ------------------------------------------------------------ 速度/加速度配置
     def configure_speed_profile(

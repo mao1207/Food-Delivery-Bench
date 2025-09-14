@@ -217,12 +217,12 @@ class BusManager:
 
     def _extract_station_name(self, station_id: str) -> str:
         """从station_id中提取友好的站点名称"""
-        # 处理格式如 "GEN_POI_BusStation_1_598" -> "bus_station 1"
+        # 处理格式如 "GEN_POI_BusStation_0_598" -> "bus_station 1"
         if station_id.startswith("GEN_POI_BusStation_"):
             # 提取数字部分
             parts = station_id.split("_")
             if len(parts) >= 4:
-                station_number = parts[3]  # 获取 "1"
+                station_number = str(int(parts[3]) + 1)  # 获取数字并+1
                 return f"bus_station {station_number}"
         
         # 如果不是预期格式，返回原始ID

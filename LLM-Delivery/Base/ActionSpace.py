@@ -66,6 +66,8 @@ COMMANDS (UPPERCASE):
 - SAY(to="agent_id", text="text")  # direct message; to can be "ALL" or "*"
 - BOARD_BUS(bus_id="bus_id", target_stop_id="target_stop_id")
 - VIEW_BUS_SCHEDULE()
+- TURN_AROUND(angle=60, direction="left"|"right")
+- STEP_FORWARD()
 
 PRECONDITIONS (obey strictly):
 - PICKUP only at the pickup door of the pick up address.
@@ -106,6 +108,10 @@ OUTPUT EXAMPLES (exactly one line):
   USE_HEAT_PACK(comp="B")
   SAY("Hi all, anyone near the charging station?")
   SAY(to="7", text="I'll take order #12, meet you at the door.")
+  BOARD_BUS(bus_id="bus_id", target_stop_id="target_stop_id")
+  VIEW_BUS_SCHEDULE()
+  TURN_AROUND(angle=60, direction="left")
+  STEP_FORWARD()
 """
 
 # =========================================================
@@ -180,6 +186,9 @@ _CANON = {
 
     "BOARD_BUS": "BOARD_BUS",
     "VIEW_BUS_SCHEDULE": "VIEW_BUS_SCHEDULE",
+
+    "TURN_AROUND": "TURN_AROUND",
+    "STEP_FORWARD": "STEP_FORWARD",
 }
 
 def sanitize_model_text(text: str) -> str:
@@ -690,6 +699,14 @@ def parse_action(model_text: str, dm: Any):
     if name == "VIEW_BUS_SCHEDULE":
         return DMAction(DMActionKind.VIEW_BUS_SCHEDULE, data={})
 
+    if name == "TURN_AROUND":
+        angle = kw.get("angle")
+        direction = kw.get("direction")
+        return DMAction(DMActionKind.TURN_AROUND, data={"angle": angle, "direction": direction})
+    
+    if name == "STEP_FORWARD":
+        return DMAction(DMActionKind.STEP_FORWARD, data={})
+
 
     raise ValueError(f"Unrecognized or malformed action: {str(model_text)[:120]}")
 
@@ -955,6 +972,17 @@ def action_to_text(action: Any, dm: Optional[Any] = None) -> str:
     # VIEW_BUS_SCHEDULE
     if str(kind).endswith("VIEW_BUS_SCHEDULE"):
         return "View bus schedule."
+
+
+    # TURN_AROUND
+    if str(kind).endswith("TURN_AROUND"):
+        angle = data.get("angle")
+        direction = data.get("direction")
+        return f"Turn {direction} {angle} degrees."
+
+    # STEP_FORWARD
+    if str(kind).endswith("STEP_FORWARD"):
+        return "Step forward."
 
     # Fallback
     return "Execute action."

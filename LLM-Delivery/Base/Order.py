@@ -2,6 +2,7 @@
 
 import time
 import random
+import math
 from dataclasses import dataclass, field
 from threading import Lock, RLock
 from typing import List, Optional, Dict, Any, Tuple, Iterable, Union
@@ -16,6 +17,9 @@ AVG_SPEED_MPS: float = 1.35      # ETA 兜底（m/s）
 TIME_MULTIPLIER: float = 1.25    # 截止时限 = ETA * 该系数 * 随机扰动
 EARNING_JITTER: Tuple[float, float] = (0.75, 1.35)  # 收益扰动
 TIME_JITTER: Tuple[float, float] = (0.85, 1.25)     # 时限扰动
+
+HANDOFF_RADIUS_MIN_CM: float = 500.0  # handoff点采样最小半径（5米）
+HANDOFF_RADIUS_MAX_CM: float = 1000.0  # handoff点采样最大半径（10米）
 
 
 # ============================== FoodItem ==============================
@@ -78,6 +82,12 @@ class Order:
     dropoff_road_name: str = ""
     road_name: str = ""  # 聚合展示名（pickup → dropoff）
 
+    # —— 建筑边界信息 ——
+    dropoff_building_box: Optional[Dict[str, Any]] = None
+
+    # —— Handoff 相关字段 ——
+    handoff_address: Optional[Vector] = None
+
     # —— 状态与流程字段 ——
     id: int = field(init=False, default=-1)
     is_accepted: bool = False
@@ -131,6 +141,9 @@ class Order:
         self.pickup_road_name = str(pu_meta.get("road_name", "") or "")
         self.dropoff_road_name = str(do_meta.get("road_name", "") or "")
 
+        # 存储建筑边界信息
+        self.dropoff_building_box = do_meta.get("building_box")
+
         if self.pickup_node is None or self.dropoff_node is None:
             raise Exception(False)
 
@@ -139,6 +152,88 @@ class Order:
             if self.pickup_road_name == self.dropoff_road_name
             else f"{self.pickup_road_name} -> {self.dropoff_road_name}"
         )
+
+    def _sample_handoff_position(self) -> Optional[Vector]:
+        """在dropoff_node附近随机采样handoff位置，避免建筑内部"""
+        if self.dropoff_node is None:
+            return None
+            
+        center_x = float(self.dropoff_node.position.x)
+        center_y = float(self.dropoff_node.position.y)
+        
+        # 最大尝试次数，避免无限循环
+        max_attempts = 50
+        
+        for attempt in range(max_attempts):
+            # 在圆形区域内随机采样，使用随机半径
+            angle = random.uniform(0, 2 * math.pi)
+            radius = random.uniform(HANDOFF_RADIUS_MIN_CM, HANDOFF_RADIUS_MAX_CM)
+            
+            handoff_x = center_x + radius * math.cos(angle)
+            handoff_y = center_y + radius * math.sin(angle)
+            handoff_pos = Vector(handoff_x, handoff_y)
+            
+            # 检查是否在建筑内部
+            if not self._is_point_inside_building(handoff_pos):
+                return handoff_pos
+        
+        # 如果所有尝试都失败，返回一个默认位置（建筑门口向外一定距离）
+        # 计算从建筑中心到门口的方向向量
+        if self.dropoff_building_box:
+            building_center_x = self.dropoff_building_box.get("x", center_x)
+            building_center_y = self.dropoff_building_box.get("y", center_y)
+            
+            # 从建筑中心到门口的方向
+            door_direction_x = center_x - building_center_x
+            door_direction_y = center_y - building_center_y
+            
+            # 归一化方向向量
+            length = math.sqrt(door_direction_x**2 + door_direction_y**2)
+            if length > 0:
+                door_direction_x /= length
+                door_direction_y /= length
+                
+                # 在门口外一定距离处放置handoff点，使用最小半径
+                offset_distance = HANDOFF_RADIUS_MAX_CM
+                handoff_x = center_x + door_direction_x * offset_distance
+                handoff_y = center_y + door_direction_y * offset_distance
+                return Vector(handoff_x, handoff_y)
+        
+        return None
+
+    def _is_point_inside_building(self, point: Vector) -> bool:
+        """检查点是否在建筑内部"""
+        if self.dropoff_building_box is None:
+            return False
+            
+        building_box = self.dropoff_building_box
+        bx = building_box.get("x", 0.0)
+        by = building_box.get("y", 0.0)
+        bw = building_box.get("w", 0.0)
+        bh = building_box.get("h", 0.0)
+        byaw = building_box.get("yaw", 0.0)
+        
+        if bw <= 0 or bh <= 0:
+            return False
+        
+        # 将点转换到建筑局部坐标系
+        # 1. 平移到建筑中心
+        local_x = point.x - bx
+        local_y = point.y - by
+        
+        # 2. 旋转到建筑局部坐标系（反向旋转）
+        yaw_rad = math.radians(-byaw)
+        cos_yaw = math.cos(yaw_rad)
+        sin_yaw = math.sin(yaw_rad)
+        
+        rotated_x = local_x * cos_yaw - local_y * sin_yaw
+        rotated_y = local_x * sin_yaw + local_y * cos_yaw
+        
+        # 3. 检查是否在矩形内部
+        half_w = bw / 2.0
+        half_h = bh / 2.0
+        
+        return abs(rotated_x) <= half_w and abs(rotated_y) <= half_h
 
     # ---------------- 路由（严格 Map 接口） ----------------
     def plan_route(self) -> List[Any]:
@@ -276,7 +371,8 @@ class Order:
         with self._lock:
             px, py = float(self.pickup_address.x), float(self.pickup_address.y)
             dx, dy = float(self.delivery_address.x), float(self.delivery_address.y)
-            return dict(
+            requires_handoff = 'hand_to_customer' in self.allowed_delivery_methods
+            hint = dict(
                 id=self.id,
                 pickup_xy=(px, py),
                 dropoff_xy=(dx, dy),
@@ -284,8 +380,14 @@ class Order:
                 eta_s=self.eta_s,
                 earnings=self.earnings,
                 road_name=self.road_name,
+                requires_handoff=requires_handoff,
             )
-
+            
+            if requires_handoff and self.handoff_address:
+                hx, hy = float(self.handoff_address.x), float(self.handoff_address.y)
+                hint["handoff_xy"] = (hx, hy)
+            
+            return hint
     # ---------------- 备餐时间线 ----------------
     def active_now(self) -> float:
         return float(self.sim_started_s) + float(self.sim_elapsed_active_s or 0.0)
@@ -440,7 +542,7 @@ class OrderManager:
         return items
 
     # ---------- 生成单个订单 ----------
-    def _spawn_one_order(self, city_map: Any, world_nodes: List[Dict[str, Any]]) -> Order:
+    def _spawn_one_order(self, city_map: Any, world_nodes: List[Dict[str, Any]], _ue = None) -> Order:
         pickups, dropoffs = self._collect_candidates(world_nodes)
         pu_node = random.choice(pickups)
         do_node = random.choice(dropoffs)
@@ -468,18 +570,28 @@ class OrderManager:
             order.allowed_delivery_methods = list(methods or [])
         else:
             order.special_note = ""                # 显示为空串
-            order.allowed_delivery_methods = None  # None 表示四种都行
+            order.allowed_delivery_methods = []  # None 表示四种都行
+
+        if 'hand_to_customer' in order.allowed_delivery_methods:
+            handoff_address = order._sample_handoff_position()
+            if handoff_address is not None:
+                order.handoff_address = handoff_address
+            else:
+                order.allowed_delivery_methods.remove('hand_to_customer')
+
+        if 'hand_to_customer' in order.allowed_delivery_methods and _ue:
+             _ue.spawn_customer(order.id, order.handoff_address.x, order.handoff_address.y)
 
         return order
 
     # ---------- 填充到固定容量 ----------
-    def fill_pool(self, city_map: Any, world_nodes: List[Dict[str, Any]]):
+    def fill_pool(self, city_map: Any, world_nodes: List[Dict[str, Any]], _ue = None):
         with self._lock:
             while len(self._orders) < self.capacity:
-                self._orders.append(self._spawn_one_order(city_map, world_nodes))
+                self._orders.append(self._spawn_one_order(city_map, world_nodes, _ue))
 
     # ---------- 维护池：完成/移除并补齐 ----------
-    def complete_order(self, order_id: int, city_map: Any, world_nodes: List[Dict[str, Any]]):
+    def complete_order(self, order_id: int, city_map: Any, world_nodes: List[Dict[str, Any]], _ue = None):
         with self._lock:
             target = None
             for o in self._orders:
@@ -494,9 +606,9 @@ class OrderManager:
             # 从池中移除并补齐
             self._orders = [o for o in self._orders if o.id != order_id]
             # fill_pool 内部会再次获取 OM 锁（RLock 可重入）
-            self.fill_pool(city_map, world_nodes)
+            self.fill_pool(city_map, world_nodes, _ue)
 
-    def remove_order(self, order_ids: Union[int, Iterable[int]], city_map: Any, world_nodes: List[Dict[str, Any]]):
+    def remove_order(self, order_ids: Union[int, Iterable[int]], city_map: Any, world_nodes: List[Dict[str, Any]], _ue = None):
         if isinstance(order_ids, int):
             ids = {int(order_ids)}
         else:
@@ -505,7 +617,7 @@ class OrderManager:
             return
         with self._lock:
             self._orders = [o for o in self._orders if int(o.id) not in ids]
-            self.fill_pool(city_map, world_nodes)
+            self.fill_pool(city_map, world_nodes, _ue)
 
     def accept_order(self, order_ids: Union[int, Iterable[int]]):
         """

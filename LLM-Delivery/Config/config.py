@@ -38,6 +38,7 @@ class Config:
     DELIVERY_MAN_MODEL_PATH = "/Game/TrafficSystem/Pedestrian/BP_DeliveryMan.BP_DeliveryMan_C"
     DELIVERY_MANAGER_MODEL_PATH = "/Game/TrafficSystem/DeliveryManager.DeliveryManager_C"
     SCOOTER_MODEL_PATH = "/Game/ScooterAssets/Blueprints/BP_Scooter_Pawn.BP_Scooter_Pawn_C"
+    CUSTOMER_MODEL_PATH = "/Game/TrafficSystem/Pedestrian/Base_Pedestrian.Base_Pedestrian_C"
 
     def get_evaluation_name(self):
         return f"{self.DIFFICULTY}_{self.MODEL_NAME}_{self.STORE_NUM}_{self.CUSTOMER_NUM}_{self.DELIVERY_MAN_NUM}"

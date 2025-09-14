@@ -299,6 +299,9 @@ def compute_settlement(
     elif stars == 3:
         extra = 0.0
         extra_note = "3★ no bonus"
+    elif stars == 2:
+        extra = 0.0
+        extra_note = "2★ no bonus"
     elif stars == 1:
         extra = cfg.penalty_1_star
         extra_note = "1★ penalty"
