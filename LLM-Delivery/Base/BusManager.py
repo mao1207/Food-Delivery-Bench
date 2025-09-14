@@ -3,6 +3,7 @@
 
 import json
 import math
+import copy
 from typing import List, Dict, Optional, Tuple, Any
 from dataclasses import dataclass
 
@@ -12,13 +13,20 @@ from Base.Timer import VirtualClock
 class BusManager:
     """公交系统管理器"""
 
-    def __init__(self, clock: Optional[VirtualClock] = None, waiting_time_s: float = 10.0, speed_cm_s: float = 1200.0):
+    def __init__(self, clock: Optional[VirtualClock] = None, waiting_time_s: float = 10.0, speed_cm_s: float = 1200.0, num_buses: int = 1):
         self.clock = clock if clock is not None else VirtualClock()
         self.routes: Dict[str, BusRoute] = {}
         self.buses: Dict[str, Bus] = {}
         self._update_timer = None
         self.waiting_time_s = waiting_time_s
         self.speed_cm_s = speed_cm_s
+        self.num_buses = num_buses
+
+    def init_bus_system(self, world_data: Dict[str, Any]):
+        """初始化公交系统"""
+        self.load_routes_from_world_data(world_data)
+        for i in range(self.num_buses):
+            self.create_bus(f"bus_{i+1}", list(self.routes.keys())[0])
 
     def load_routes_from_world_data(self, world_data: Dict[str, Any]):
         """从世界数据加载公交路线"""
@@ -40,7 +48,7 @@ class BusManager:
                 if station_id in node_map:
                     node = node_map[station_id]
                     stop = BusStop(
-                        id=station_id,
+                        id=self._extract_station_name(station_id),
                         x=float(node.get("properties", {}).get("location", {}).get("x", 0)),
                         y=float(node.get("properties", {}).get("location", {}).get("y", 0)),
                         name=self._extract_station_name(station_id),  # 使用提取的名称
@@ -110,15 +118,18 @@ class BusManager:
             print(f"Route {route_id} not found")
             return None
 
-        route = self.routes[route_id]
+        # 创建路线的深拷贝，避免多辆车共享同一个路线对象
+        original_route = self.routes[route_id]
+        route_copy = copy.deepcopy(original_route)
+        
         bus = Bus(
             id=bus_id,
-            route=route,
+            route=route_copy,  # 使用独立的路线副本
             clock=self.clock
         )
 
         self.buses[bus_id] = bus
-        print(f"Created bus {bus_id} on route {route.name}")
+        print(f"Created bus {bus_id} on route {route_copy.name}")
         return bus
 
     def get_bus(self, bus_id: str) -> Optional[Bus]:

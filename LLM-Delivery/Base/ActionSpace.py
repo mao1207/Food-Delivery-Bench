@@ -64,6 +64,8 @@ COMMANDS (UPPERCASE):
 - DROP_OFF(oid=<int>, method="leave_at_door|knock|call|hand_to_customer")
 - SAY("text")  # broadcast to all
 - SAY(to="agent_id", text="text")  # direct message; to can be "ALL" or "*"
+- BOARD_BUS(bus_id="bus_id", target_stop_id="target_stop_id")
+- VIEW_BUS_SCHEDULE()
 
 PRECONDITIONS (obey strictly):
 - PICKUP only at the pickup door of the pick up address.
@@ -175,6 +177,9 @@ _CANON = {
     "DELIVER_ORDER": "DROP_OFF",
 
     "SAY": "SAY",
+
+    "BOARD_BUS": "BOARD_BUS",
+    "VIEW_BUS_SCHEDULE": "VIEW_BUS_SCHEDULE",
 }
 
 def sanitize_model_text(text: str) -> str:
@@ -242,22 +247,75 @@ def _ast_value(node: ast.AST) -> Any:
     raise ValueError(f"Unsupported expression: {ast.dump(node, include_attributes=False)}")
 
 def _parse_call(text: str) -> Tuple[str, List[Any], Dict[str, Any]]:
+    """
+    解析模型输出的一行函数调用文本，提取动作名称和参数。
+    
+    该函数将形如 "ACTION_NAME(arg1, arg2, key=value)" 的文本解析为：
+    - 标准化的动作名称
+    - 位置参数列表
+    - 关键字参数字典
+    
+    Args:
+        text (str): 待解析的函数调用文本，如 "MOVE(102.3m, 885.5m, pace='accel')"
+        
+    Returns:
+        Tuple[str, List[Any], Dict[str, Any]]: 
+            - name (str): 标准化后的动作名称，如 "MOVE"
+            - pos (List[Any]): 位置参数列表，如 [10230.0, 88550.0] (米已转换为厘米)
+            - kw (Dict[str, Any]): 关键字参数字典，如 {"pace": "accel"}
+            
+    Raises:
+        ValueError: 当文本不是有效的函数调用格式时
+        
+    Examples:
+        >>> _parse_call("MOVE(102.3m, 885.5m)")
+        ("MOVE", [10230.0, 88550.0], {})
+        
+        >>> _parse_call("ACCEPT_ORDER(12)")
+        ("ACCEPT_ORDER", [12], {})
+        
+        >>> _parse_call("MOVE(100, 200, pace='accel')")
+        ("MOVE", [100.0, 200.0], {"pace": "accel"})
+        
+        >>> _parse_call("BUY(items=[{'item_id':'energy_drink','qty':2}])")
+        ("BUY", [], {"items": [{"item_id": "energy_drink", "qty": 2}]})
+    """
+    # 使用正则表达式匹配函数调用格式：ACTION_NAME(...)
     m = _CALL_RE.match(text)
     if not m:
         raise ValueError("Output is not a function call like NAME(...).")
-    raw_name = m.group(1).strip()
-    name = _CANON.get(raw_name.upper(), raw_name.upper())
-    args_src = m.group(2).strip()
+    
+    # 提取并标准化动作名称
+    raw_name = m.group(1).strip()  # 原始动作名称，如 "move_to"
+    name = _CANON.get(raw_name.upper(), raw_name.upper())  # 标准化，如 "MOVE"
+    
+    # 提取参数部分
+    args_src = m.group(2).strip()  # 参数字符串，如 "102.3m, 885.5m, pace='accel'"
+    
+    # 如果没有参数，直接返回空参数
     if args_src == "":
         return name, [], {}
-    args_src = _convert_m_to_cm_in_args(args_src)  # 单位换算
-    fake = f"__F__({args_src})"
+    
+    # 将米单位转换为厘米（如 "102.3m" -> "10230"）
+    args_src = _convert_m_to_cm_in_args(args_src)
+    
+    # 构造一个假的函数调用用于AST解析
+    # 因为ast.parse需要完整的表达式，所以包装成函数调用
+    fake = f"__F__({args_src})"  # 如 "__F__(10230, 88550, pace='accel')"
+    
+    # 使用AST解析参数
     tree = ast.parse(fake, mode="eval")
     if not isinstance(tree.body, ast.Call):
         raise ValueError("Not a call.")
-    call = tree.body
-    pos = [_ast_value(a) for a in call.args]
-    kw = {kw.arg: _ast_value(kw.value) for kw in call.keywords if kw.arg is not None}
+    
+    call = tree.body  # 获取函数调用节点
+    
+    # 提取位置参数：按顺序传递的参数
+    pos = [_ast_value(a) for a in call.args]  # 如 [10230.0, 88550.0]
+    
+    # 提取关键字参数：key=value 形式的参数
+    kw = {kw.arg: _ast_value(kw.value) for kw in call.keywords if kw.arg is not None}  # 如 {"pace": "accel"}
+    
     return name, pos, kw
 
 # —— 工具：取当前取餐口的活跃订单
@@ -624,6 +682,13 @@ def parse_action(model_text: str, dm: Any):
 
         return DMAction(DMActionKind.SAY, data={"text": text, "to": to})
 
+    if name == "BOARD_BUS":
+        bus_id = kw.get("bus_id")
+        target_stop_id = kw.get("target_stop_id")
+        return DMAction(DMActionKind.BOARD_BUS, data={"bus_id": bus_id, "target_stop_id": target_stop_id})
+
+    if name == "VIEW_BUS_SCHEDULE":
+        return DMAction(DMActionKind.VIEW_BUS_SCHEDULE, data={})
 
 
     raise ValueError(f"Unrecognized or malformed action: {str(model_text)[:120]}")
@@ -870,6 +935,7 @@ def action_to_text(action: Any, dm: Optional[Any] = None) -> str:
         c = (data.get("comp") or "?")
         return f"Use a heat pack on compartment {c}."
 
+    # SAY
     if str(kind).endswith("SAY"):
         txt = str(data.get("text") or "")
         to  = data.get("to", None)
@@ -878,6 +944,17 @@ def action_to_text(action: Any, dm: Optional[Any] = None) -> str:
         if to:
             return f'Send chat to {to}: "{show}"'
         return f'Send broadcast chat: "{show}"'
+
+    
+    # BOARD_BUS
+    if str(kind).endswith("BOARD_BUS"):
+        bus_id = data.get("bus_id")
+        target_stop_id = data.get("target_stop_id")
+        return f"Board bus {bus_id} to {target_stop_id}."
+
+    # VIEW_BUS_SCHEDULE
+    if str(kind).endswith("VIEW_BUS_SCHEDULE"):
+        return "View bus schedule."
 
     # Fallback
     return "Execute action."

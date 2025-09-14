@@ -21,6 +21,7 @@ from Base.Settlement import compute_settlement, SettlementConfig
 from Base.Prompt import get_system_prompt
 from Base.ActionSpace import ACTION_API_SPEC, parse_action as parse_vlm_action, action_to_text
 from Base.RunRecorder import RunRecorder
+from Base.BusManager import BusManager
 from utils.util import _ensure_png_bytes
 
 from typing import TYPE_CHECKING
@@ -61,7 +62,7 @@ class DMActionKind(str, Enum):
     VIEW_ORDERS          = "view_orders"
     VIEW_BAG             = "view_bag"
     PICKUP               = "pickup"
-    PLACE_FOOD_IN_BAG   = "place_food_in_bag"
+    PLACE_FOOD_IN_BAG    = "place_food_in_bag"
     CHARGE_ESCOOTER      = "charge_escooter"
     WAIT                 = "wait"
     REST                 = "rest"
@@ -82,6 +83,8 @@ class DMActionKind(str, Enum):
     REPORT_HELP_FINISHED = "report_help_finished" # helper 报告完成
     DROP_OFF             = "drop_off"
     SAY                  = "say"
+    BOARD_BUS            = "board_bus"
+    VIEW_BUS_SCHEDULE    = "view_bus_schedule"
 
 @dataclass
 class DMAction:
@@ -122,6 +125,7 @@ class DeliveryMan:
     # managers
     _order_manager: Optional[Any] = field(default=None, repr=False)
     _store_manager: Optional[StoreManager] = field(default=None, repr=False)
+    _bus_manager: Optional[BusManager] = field(default=None, repr=False)
 
     # scheduling
     _queue: List[DMAction] = field(default_factory=list, repr=False)
@@ -174,6 +178,9 @@ class DeliveryMan:
 
     # rental billing
     _rental_ctx: Optional[Dict[str, float]] = field(default=None, repr=False)  # {"last_tick_sim": float, "rate_per_min": float}
+
+    # bus context
+    _bus_ctx: Optional[Dict[str, float]] = field(default=None, repr=False)  # {"bus_id": str, "boarding_stop": str, "target_stop": str}
 
     # movement interrupt
     _interrupt_move_flag: bool = field(default=False, repr=False)
@@ -307,6 +314,8 @@ class DeliveryMan:
             DMActionKind.REPORT_HELP_FINISHED: self._handle_report_help_finished,
             DMActionKind.DROP_OFF:             self._handle_drop_off,
             DMActionKind.SAY:                  self._handle_say,
+            DMActionKind.BOARD_BUS:            self._handle_board_bus,
+            DMActionKind.VIEW_BUS_SCHEDULE:    self._handle_view_bus_schedule,
         }
         self._recalc_towing()
 
@@ -368,6 +377,7 @@ class DeliveryMan:
     # ===== wiring =====
     def set_order_manager(self, om: Any): self._order_manager = om
     def set_store_manager(self, store_mgr: Any): self._store_manager = store_mgr
+    def set_bus_manager(self, bus_mgr: Any): self._bus_manager = bus_mgr
     def set_ue(self, ue: Any): self._ue = ue
 
     def register_to_comms(self):
@@ -1330,6 +1340,7 @@ class DeliveryMan:
 
     # ===== VLM decider =====
     def _default_decider(self) -> Optional[DMAction]:
+        return None
         # 不可决策状态：直接返回
         if self._lifecycle_done:
             return None
@@ -1342,7 +1353,7 @@ class DeliveryMan:
 
         # 组 prompt + 渲染图片（这部分必须在主线程；你接受这点）
         prompt = self.build_vlm_input()
-        print(prompt)
+        print(f'Prompt:\n {prompt}')
 
         # 如果你希望渲染不计入虚拟时间，可临时 pause/resume（可选）
         # self.timers_pause()
@@ -3448,3 +3459,156 @@ class DeliveryMan:
 
         # 刷新附近 POI 提示（MODIFIED: 会针对 assist/own 选择提示充电）
         self._refresh_poi_hints_nearby()
+
+        # 公交状态推进
+        if self._bus_ctx and self.mode == TransportMode.BUS:
+            self._update_bus_riding(now)
+
+    # ===== Bus handlers =====
+    def _handle_board_bus(self, _self, act: DMAction, _allow_interrupt: bool):
+        """上车动作"""
+        self.vlm_clear_ephemeral()
+        if not self._bus_manager:
+            self.vlm_add_error("board_bus failed: no bus manager")
+            self._finish_action(success=False)
+            return
+
+        bus_id = act.data.get("bus_id")
+        target_stop_id = act.data.get("target_stop_id")
+
+        if not bus_id:
+            self.vlm_add_error("board_bus failed: need bus_id")
+            self._finish_action(success=False)
+            # print("board_bus failed: need bus_id")
+            return
+
+        if not target_stop_id:
+            self.vlm_add_error("board_bus failed: need target_stop")
+            self._finish_action(success=False)
+            # print("board_bus failed: need target_stop")
+            return
+
+        bus = self._bus_manager.get_bus(bus_id)
+        if not bus:
+            self.vlm_add_error(f"board_bus failed: bus {bus_id} not found")
+            self._finish_action(success=False)
+            # print(f"board_bus failed: bus {bus_id} not found")
+            return
+
+        # 检查bus是否在当前车站且为stopped状态
+        if not bus.is_at_stop() or math.hypot(bus.x - self.x, bus.y - self.y) > 300.0:
+            self.vlm_add_error(f"board_bus failed: bus {bus_id} not at stop")
+            self._finish_action(success=False)
+            # print(f"board_bus failed: bus {bus_id} not at stop")
+            return
+
+        # 验证目标站点是否在bus的路线上
+        target_stop = None
+        for stop in bus.route.stops:
+            if stop.id == target_stop_id:
+                target_stop = stop
+                break
+
+        if not target_stop:
+            self.vlm_add_error(f"board_bus failed: target stop {target_stop_id} not on bus route")
+            self._finish_action(success=False)
+            # print(f"board_bus failed: target stop {target_stop_id} not on bus route")
+            return
+
+        # 检查当前站点是否就是目标站点（避免无意义的上车）
+        current_stop = bus.get_current_stop()
+        if current_stop and current_stop.id == target_stop_id:
+            self.vlm_add_error(f"board_bus failed: already at target stop {target_stop_id}")
+            self._finish_action(success=False)
+            # print(f"board_bus failed: already at target stop {target_stop_id}")
+            return
+
+        # 上车
+        if bus.board_passenger(str(self.agent_id)):
+            self._bus_ctx = {
+                "bus_id": bus_id,
+                "boarding_stop": current_stop.id if current_stop else "",
+                "target_stop": target_stop_id,
+                "transport_mode": self.mode,
+                "boarded_time": self.clock.now_sim()
+            }
+            self.set_mode(TransportMode.BUS)
+            self._log(f"boarded bus {bus_id} at {current_stop.id if current_stop else 'unknown'} heading to {target_stop_id}")
+            self._register_success(f"boarded bus {bus_id}")
+        else:
+            self.vlm_add_error("board_bus failed: could not board")
+            self._finish_action(success=False)
+            # print("board_bus failed: could not board")
+
+    def _update_bus_riding(self, now: float):
+        """更新乘坐公交状态"""
+        if not self._bus_ctx or not self._bus_manager:
+            return
+
+        bus_id = self._bus_ctx.get("bus_id")
+        bus = self._bus_manager.get_bus(bus_id)
+
+        # 跟随公交位置
+        self.x = bus.x
+        self.y = bus.y
+
+        # 检查是否到达目标站点
+        target_stop_id = self._bus_ctx.get("target_stop")
+        if target_stop_id and bus.is_at_stop():
+            current_stop = bus.get_current_stop()
+            if current_stop and current_stop.id == target_stop_id:
+                # 到达目标站点，自动下车
+                bus.alight_passenger(str(self.agent_id))
+                self._log(f"arrived at target stop {target_stop_id}, auto alighting")
+                self.set_mode(self._bus_ctx.get("transport_mode"))
+                if self._ue and hasattr(self._ue, "teleport_xy"): 
+                    self._ue.teleport_xy(str(self.agent_id), float(self.x), float(self.y))
+                self._bus_ctx = None
+                self._finish_action(success=True)
+
+    def _handle_view_bus_schedule(self, _self, act: DMAction, _allow_interrupt: bool):
+        """查看公交时刻表"""
+        try:
+            if not self._bus_manager:
+                self.vlm_add_ephemeral("bus_schedule", "(no bus schedule)")
+                self._log("view bus schedule (no bus manager)")
+                self._finish_action(success=True)
+                return
+
+            # 获取所有路线信息
+            routes_info = self._bus_manager.get_all_routes_info()
+            
+            # 获取所有公交车状态
+            buses_status = self._bus_manager.get_all_buses_status()
+            
+            # 构建时刻表文本
+            schedule_text = "=== BUS SCHEDULE ===\n"
+            
+            # 添加路线信息
+            if routes_info:
+                schedule_text += "Routes:\n"
+                for route_id, route_info in routes_info.items():
+                    schedule_text += f"\nRoute {route_info['name']}:\n"
+                    schedule_text += f"  Stops ({len(route_info['stops'])}):\n"
+                    
+                    for i, stop in enumerate(route_info['stops']):
+                        schedule_text += f"  {stop['name']} - Wait: {stop['wait_time_s']:.1f}s\n"
+            else:
+                schedule_text += "No routes available.\n"
+            
+            # 添加当前公交车状态
+            if buses_status:
+                schedule_text += "\nCurrent bus status:\n"
+                for status in buses_status:
+                    schedule_text += f"  {status}\n"
+            else:
+                schedule_text += "\nNo buses currently running.\n"
+            
+            # 塞进 ephemeral，供 VLM prompt 使用
+            self.vlm_add_ephemeral("bus_schedule", schedule_text)
+            self._log("view bus schedule")
+            self._finish_action(success=True)
+
+        except Exception as e:
+            self.vlm_add_error(f"view_bus_schedule failed: {e}")
+            self._finish_action(success=False)

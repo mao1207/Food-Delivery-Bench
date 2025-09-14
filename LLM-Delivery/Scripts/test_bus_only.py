@@ -44,36 +44,8 @@ def main():
     # 从世界数据加载公交路线
     with open(WORLD_JSON, "r", encoding="utf-8") as f:
         world_data = json.load(f)
-    bus_manager.load_routes_from_world_data(world_data)
+    bus_manager.init_bus_system(world_data)
 
-    # 创建多辆公交车
-    if bus_manager.routes:
-        route_id = list(bus_manager.routes.keys())[0]  # 使用第一个路线
-        print(f"Creating buses on route: {route_id}")
-
-        # 创建3辆公交车，错开发车时间
-        bus1 = bus_manager.create_bus("bus_001", route_id)
-        bus2 = bus_manager.create_bus("bus_002", route_id)
-        # bus3 = bus_manager.create_bus("bus_003", route_id)
-
-        # # 让第二辆和第三辆车错开发车
-        if bus2 and bus2.route.stops:
-            bus2.current_path_index = 2
-            bus2.current_stop_index = 0  # 从第二个站点开始
-            bus2.x = bus2.route.stops[1].x
-            bus2.y = bus2.route.stops[1].y
-            bus2.state = bus2.state.__class__.MOVING
-
-        # if bus3 and bus3.route.stops:
-        #     bus3.current_stop_index = 2  # 从第三个站点开始
-        #     bus3.x = bus3.route.stops[2].x
-        #     bus3.y = bus3.route.stops[2].y
-        #     bus3.state = bus3.state.__class__.STOPPED
-        #     bus3.stop_start_time = clock.now_sim() - 3.0  # 提前3秒到达
-
-        print(f"Created {len(bus_manager.buses)} buses")
-    else:
-        print("No bus routes found in world data")
 
     # --- Viewer ---
     v = MapObserver(title="Bus Movement Only", clock=clock)

@@ -224,12 +224,10 @@ class Bus:
 
     def get_next_stop(self) -> Optional[BusStop]:
         """获取下一个站点"""
-        if not self.route.stops:
+        if not self.route.stops or self.current_stop_index + 1 >= len(self.route.stops):
             return None
 
-        # 计算下一个站点索引
-        next_stop_index = (self.current_stop_index + 1) % len(self.route.stops)
-        return self.route.stops[next_stop_index]
+        return self.route.stops[self.current_stop_index + 1]
 
     def get_current_stop(self) -> Optional[BusStop]:
         """获取当前站点"""
@@ -298,12 +296,8 @@ class Bus:
 
         if self.state == BusState.STOPPED:
             stop = self.get_current_stop()
-            stop_name = stop.name if stop else "Unknown"
+            stop_name = stop.name if stop else "None"
             status_parts.append(f"stopped at {stop_name}")
-
-            # last_stop = self.get_last_stop()
-            # last_stop_name = last_stop.name if last_stop else "None"
-            # status_parts.append(f"last stop: {last_stop_name}")
 
             # 添加剩余停靠时间
             remaining_time = self._get_remaining_stop_time()
@@ -312,12 +306,8 @@ class Bus:
 
         elif self.state == BusState.MOVING:
             next_stop = self.get_next_stop()
-            next_name = next_stop.name if next_stop else "Unknown"
+            next_name = next_stop.name if next_stop else "None"
             status_parts.append(f"moving to {next_name}")
-
-            # last_stop = self.get_last_stop()
-            # last_stop_name = last_stop.name if last_stop else "None"
-            # status_parts.append(f"last stop: {last_stop_name}")
 
             # 添加到达时间
             time_to_next = self._calculate_time_to_next_stop()
