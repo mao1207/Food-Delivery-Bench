@@ -1,0 +1,9 @@
+{
+  "I'm in a meeting, please don't disturb me during delivery": ["leave_at_door"],
+  "Let me know when you arrive": ["knock", "hand_to_customer"],
+  "Please knock softly when you arrive": ["knock"],
+  "Please call me when you arrive": ["call"],
+  "If I'm not home, leave it at the door": ["leave_at_door", "knock"],
+  "I'm waiting at the dorm entrance": ["hand_to_customer"],
+  "Baby is sleeping, please don't knock": ["leave_at_door"]
+}

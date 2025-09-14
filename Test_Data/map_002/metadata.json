@@ -1,0 +1,12 @@
+{
+  "difficulty": "hard",
+  "num_stores": 10,
+  "num_customers": 16,
+  "num_delivery_men": 10,
+  "num_roads": 10,
+  "num_buildings": 84,
+  "num_elements": 458,
+  "progen_world_json": "progen_world.json",
+  "roads_json": "roads.json",
+  "generation_type": "random procedural generation"
+}

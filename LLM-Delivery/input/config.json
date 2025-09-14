@@ -1,0 +1,82 @@
+{
+  "avg_speed_cm_s": {
+    "walk": 1350,
+    "e-scooter": 800,
+    "drag_scooter": 800,
+    "car": 2000,
+    "bus": 1200
+  },
+  "energy_pct_decay_per_m_by_mode": {
+    "walk": 0.05,
+    "drag_scooter": 0.1,
+    "e-scooter": 0.08,
+    "car": 0.004,
+    "bus": 0.004
+  },
+  "scooter_batt_decay_pct_per_m": 0.5,
+
+  "initial_earnings": 100,
+  "energy_pct_max": 100,
+  "rest_rate_pct_per_min": 8,
+  "low_energy_threshold_pct": 30,
+  "hospital_duration_s": 20,
+  "hospital_rescue_fee": 15.0,
+
+  "charge_price_per_percent": 0.5,
+
+  "escooter_defaults": {
+    "initial_battery_pct": 50,
+    "charge_rate_pct_per_min": 30
+  },
+
+  "rent_car_defaults": {
+    "avg_speed_cm_s": 2000,
+    "rate_per_min": 1.0
+  },
+
+  "tolerance_cm": {
+    "nearby": 500.0,
+    "arrive": 500.0,
+    "scooter": 500.0,
+    "tempbox": 500.0
+  },
+
+  "routing": {
+    "snap_cm": 120.0
+  },
+
+  "ui": {
+    "show_path_ms": 2000
+  },
+
+  "vlm": {
+    "next_action_delay_ms": 300,
+    "retry_max": 5
+  },
+
+  "defaults": {
+    "rest_target_pct": 100,
+    "charge_target_pct": 100
+  },
+
+  "items": {
+    "energy_drink": { "energy_gain_pct": 50 },
+    "escooter_battery_pack": { "target_charge_pct": 100 }
+  },
+
+  "map_snapshot_limits": {
+    "next": 20,
+    "s": 40,
+    "poi": 80
+  },
+  "settlement": {},
+  "lifecycle": {
+    "duration_hours": 0.02,
+    "export_path": "."
+  },
+
+  "agent_count": 2,
+
+  "ambient_temp_c": 22.0,
+  "k_food_per_s": 0.0005555555555555556
+}
