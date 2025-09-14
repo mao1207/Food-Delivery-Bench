@@ -10,6 +10,7 @@ Communicator.py
 
 import math
 import re
+import random
 import threading
 import time
 from collections.abc import Sequence
@@ -65,6 +66,20 @@ class Communicator(UnrealCvDelivery):
             self.set_scale((1.0, 1.0, 1.0), name)
             self.set_collision(name, True)
             self.set_movable(name, True)
+
+    def spawn_customer(self, order_id: int, x: float, y: float) -> None:
+        name = f"GEN_CUSTOMER_{order_id}"
+        with self._send_lock:
+            self.spawn_bp_asset(Config.CUSTOMER_MODEL_PATH, name)
+            self.set_location((float(x), float(y), 110.0), name)
+            self.set_orientation((0.0, random.uniform(0, 360), 0.0), name)
+            self.set_scale((1.0, 1.0, 1.0), name)
+            self.set_collision(name, True)
+            self.set_movable(name, True)
+
+    def destroy_customer(self, name: str) -> None:
+        with self._send_lock:
+            self.destroy(name)
 
     def spawn_delivery_manager(self) -> None:
         self.delivery_manager_name = "GEN_DeliveryManager"

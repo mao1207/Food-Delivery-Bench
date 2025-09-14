@@ -1403,7 +1403,7 @@ class DeliveryMan:
                 self.active_orders.append(o)
 
         if accepted_ids:
-            om.remove_order(accepted_ids, self.city_map, self.world_nodes)
+            om.remove_order(accepted_ids, self.city_map, self.world_nodes, self._ue)
 
         # 4) 汇总日志 / 成功与否
         acc_txt = " ".join(f"#{i}" for i in accepted_ids) if accepted_ids else "none"
