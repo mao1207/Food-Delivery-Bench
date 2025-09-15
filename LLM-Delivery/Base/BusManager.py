@@ -34,7 +34,7 @@ class BusManager:
 
         for route_data in bus_routes_data:
             route_id = route_data.get("id", f"route_{len(self.routes)}")
-            route_name = route_data.get("name", f"Route {route_id}")
+            route_name = route_data.get("name", f"{route_id}")
 
             # 创建站点
             stops = []

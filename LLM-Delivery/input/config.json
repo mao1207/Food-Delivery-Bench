@@ -80,7 +80,7 @@
   "ambient_temp_c": 22.0,
   "k_food_per_s": 0.0005555555555555556,
   "bus": {
-    "waiting_time_s": 10,
+    "waiting_time_s": 180,
     "speed_cm_s": 1200,
     "num_buses": 1
   }

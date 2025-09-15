@@ -138,7 +138,7 @@ class Bus:
                 remaining_distance = 0.0
 
         if self.current_path_index >= len(self.route.path_points) - 1:
-            print(f"Bus {self.id} reached the end of the line and is returning.")
+            # print(f"Bus {self.id} reached the end of the line and is returning.")
 
             # 反转站点和路径点列表
             self.route.stops.reverse()
@@ -208,7 +208,7 @@ class Bus:
         if expected_path_index < len(self.route.path_points):
             self.current_path_index = expected_path_index
 
-        print(f"Bus {self.id} arrived at stop {stop.name or stop.id}")
+        # print(f"Bus {self.id} arrived at stop {stop.name or stop.id}")
 
     def _depart_from_stop(self):
         """从站点出发"""
@@ -220,7 +220,7 @@ class Bus:
             # self.current_path_index += 1
             self.progress_to_next = 0.0
 
-        print(f"Bus {self.id} departed from stop {self.route.stops[self.current_stop_index].name or self.route.stops[self.current_stop_index].id}")
+        # print(f"Bus {self.id} departed from stop {self.route.stops[self.current_stop_index].name or self.route.stops[self.current_stop_index].id}")
 
     def get_next_stop(self) -> Optional[BusStop]:
         """获取下一个站点"""
@@ -244,7 +244,7 @@ class Bus:
         with self._lock:
             if self.is_at_stop() and passenger_id not in self.passengers:
                 self.passengers.append(passenger_id)
-                print(f"Passenger {passenger_id} boarded bus {self.id}")
+                # print(f"Passenger {passenger_id} boarded bus {self.id}")
                 return True
             return False
 
@@ -253,7 +253,7 @@ class Bus:
         with self._lock:
             if passenger_id in self.passengers:
                 self.passengers.remove(passenger_id)
-                print(f"Passenger {passenger_id} alighted from bus {self.id}")
+                # print(f"Passenger {passenger_id} alighted from bus {self.id}")
                 return True
             return False
 
@@ -293,6 +293,9 @@ class Bus:
     def get_status_text(self) -> str:
         """获取状态文本"""
         status_parts = [f"Bus {self.id}"]
+        
+        # 添加路线名称
+        status_parts.append(f"route: {self.route.name}")
 
         if self.state == BusState.STOPPED:
             stop = self.get_current_stop()

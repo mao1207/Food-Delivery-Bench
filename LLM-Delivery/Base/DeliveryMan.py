@@ -3606,13 +3606,13 @@ class DeliveryMan:
             buses_status = self._bus_manager.get_all_buses_status()
             
             # 构建时刻表文本
-            schedule_text = "=== BUS SCHEDULE ===\n"
+            schedule_text = ""
             
             # 添加路线信息
             if routes_info:
                 schedule_text += "Routes:\n"
                 for route_id, route_info in routes_info.items():
-                    schedule_text += f"\n{route_info['name']}:\n"
+                    schedule_text += f"Route{route_info['name']}:\n"
                     schedule_text += f"  Stops ({len(route_info['stops'])}):\n"
                     
                     for i, stop in enumerate(route_info['stops']):
