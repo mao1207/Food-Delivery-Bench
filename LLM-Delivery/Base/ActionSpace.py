@@ -32,13 +32,10 @@ __all__ = [
 # =========================================================
 # 1) 规范文本
 # =========================================================
-ACTION_API_SPEC: str = r"""
-You must output EXACTLY ONE action per turn, as a ONE-LINE function call (no prose, no code fences, no comments).
-
-COMMANDS (UPPERCASE):
-- VIEW_ORDERS()
-- VIEW_BAG()
-- ACCEPT_ORDER(order_id) or ACCEPT_ORDER([order_id, ...])
+ACTION_API_SPEC: str = r"""COMMANDS (UPPERCASE):
+- VIEW_ORDERS()     # view all available orders
+- VIEW_BAG()        # view your bag
+- ACCEPT_ORDER(order_id) or ACCEPT_ORDER([order_id, ...])       # accept one or more orders
 - MOVE(x, y) # x,y in meters; MUST use 'm' suffix (e.g., MOVE(102.3m, -5.0m))
 - MOVE(x, y, pace="accel"|"normal"|"decel")
 - PICKUP(orders=[12, 18])  # pick ready orders at the pickup door (two-step: pickup -> place into bag)
@@ -46,16 +43,16 @@ COMMANDS (UPPERCASE):
 - CHARGE(target_pct=100)
 - WAIT(seconds=NN) or WAIT("charge_done")
 - REST(target_pct=100)
-- BUY(item_id="energy_drink", qty=1) or BUY(items=[{"item_id":"energy_drink","qty":2}, {"name":"escooter_battery_pack","qty":1}])
+- BUY(item_id="energy_drink", qty=1) or BUY(items=[{"item_id":"energy_drink","qty":2}, {"item_id":"escooter_battery_pack","qty":1}])
 - USE_BATTERY_PACK()
 - USE_ENERGY_DRINK()
 - USE_ICE_PACK(comp="A")   # instantly set compartment A to 0°C; consumes one ice_pack
 - USE_HEAT_PACK(comp="B")  # instantly set compartment B to 60°C; consumes one heat_pack
-- SWITCH(to="walk"|"e-scooter"|"car" | "drag_scooter")
-- RENT_CAR(rate_per_min=1.0, avg_speed_m_s=20)  # speed in m/s
+- SWITCH(to="walk"|"e-scooter"|"car"|"drag_scooter")
+- RENT_CAR()  # cost $1 per minute with average speed 12 m/s
 - RETURN_CAR()
 - VIEW_HELP_BOARD()
-- POST_HELP(kind="HELP_PICKUP"|"HELP_DELIVERY"|"HELP_BUY"|"HELP_CHARGE", bounty=5.0, ttl_s=300, payload={...})
+- POST_HELP(kind="HELP_PICKUP"|"HELP_DELIVERY"|"HELP_BUY"|"HELP_CHARGE", bounty=5.0, ttl_s=300, payload={...})  # bounty = money reward in dollars, ttl_s = expiration in seconds, provide_xy = give from here, deliver_xy = deliver to here, target_pct = target battery %
 - ACCEPT_HELP(req_id=123)
 - EDIT_HELP(req_id=123, new_bounty=6.0, new_ttl_min=10)  # duration in minutes
 - PLACE_TEMP_BOX(req_id=123, location=(110.0m, 445.0m), content={"inventory": {"energy_drink": 1}, "food": "", "escooter": ""})
@@ -66,23 +63,10 @@ COMMANDS (UPPERCASE):
 - SAY(to="agent_id", text="text")  # direct message; to can be "ALL" or "*"
 - BOARD_BUS(bus_id="bus_id", target_stop_id="target_stop_id")
 - VIEW_BUS_SCHEDULE()
-- TURN_AROUND(angle=60, direction="left"|"right")
-- STEP_FORWARD()
+- TURN_AROUND(angle=60, direction="left"|"right")   # specify the angle and direction; agent can be [0, 180] degrees
+- STEP_FORWARD()   # step forward 1 meter"""
 
-PRECONDITIONS (obey strictly):
-- PICKUP only at the pickup door of the pick up address.
-- PLACE_FOOD_IN_BAG only after you have pending food items in hand.
-- CHARGE only at a charging_station; the scooter may be parked automatically.
-- REST only at a rest_area.
-- SWITCH to "e-scooter"/"car" only when near your vehicle.
-- For deliveries, MOVE to the dropoff first, then call DROP_OFF(oid, method=...).
-- VIEW_ORDERS can be used to check available orders. If the current context already contains detailed order information, you do not need to repeat VIEW_ORDERS unnecessarily.
-- For HELP_BUY / HELP_PICKUP / HELP_CHARGE: after completing the task, PLACE_TEMP_BOX at deliver_xy and REPORT_HELP_FINISHED. The original agent may later TAKE_FROM_TEMP_BOX at that location. For HELP_DELIVERY or HELP_CHARGE requests *you post*, you must PLACE_TEMP_BOX with your items/vehicle at provide_xy and let others TAKE_FROM_TEMP_BOX from there.
-  (bounty = money reward in dollars, ttl_s = expiration in seconds, provide_xy = give from here, deliver_xy = deliver to here, target_pct = target battery %)
-- When you are carrying items that are delicate, spill-prone, easily deformed, or otherwise require gentle handling, note that moving with pace="accel" may cause some damage to the food.
-
-
-OUTPUT EXAMPLES (exactly one line):
+OUTPUT_EXAMPLES: str = """OUTPUT EXAMPLES (exactly one line):
   VIEW_ORDERS()
   VIEW_BAG()
   ACCEPT_ORDER(12)
@@ -96,7 +80,7 @@ OUTPUT EXAMPLES (exactly one line):
   BUY(item="energy_drink", qty=1)
   BUY(items=[{"item_id":"energy_drink","qty":2}, {"name":"escooter_battery_pack","qty":1}])
   SWITCH(to="e-scooter")
-  RENT_CAR(rate_per_min=1.0, avg_speed_m_s=22.0)
+  RENT_CAR()
   VIEW_HELP_BOARD()
   PLACE_TEMP_BOX(req_id=77, location=(110.0m, 445.0m), content={"food": "", "inventory": {"energy_drink": 1}})
   POST_HELP(kind="HELP_PICKUP", bounty=5.0, ttl_s=600, payload={"order_id": 21, "deliver_xy": (205.0m, 318.0m)})
@@ -111,8 +95,7 @@ OUTPUT EXAMPLES (exactly one line):
   BOARD_BUS(bus_id="bus_id", target_stop_id="target_stop_id")
   VIEW_BUS_SCHEDULE()
   TURN_AROUND(angle=60, direction="left")
-  STEP_FORWARD()
-"""
+  STEP_FORWARD()"""
 
 # =========================================================
 # 2) 解析辅助
@@ -541,14 +524,7 @@ def parse_action(model_text: str, dm: Any):
         return DMAction(DMActionKind.SWITCH_TRANSPORT, data=dict(to=to))
 
     if name == "RENT_CAR":
-        rate = float(kw.get("rate_per_min", 1.0))
-        speed_m_s = float(kw.get("avg_speed_m_s", 20.0))
-        if len(pos) >= 1:
-            rate = float(pos[0])
-        if len(pos) >= 2:
-            speed_m_s = float(pos[1])
-        speed_cm_s = float(speed_m_s) * 100.0
-        return DMAction(DMActionKind.RENT_CAR, data=dict(rate_per_min=rate, avg_speed_cm_s=speed_cm_s))
+        return DMAction(DMActionKind.RENT_CAR, data={})
 
     if name == "RETURN_CAR":
         return DMAction(DMActionKind.RETURN_CAR, data={})
@@ -828,9 +804,7 @@ def action_to_text(action: Any, dm: Optional[Any] = None) -> str:
 
     # RENT_CAR / RETURN_CAR
     if str(kind).endswith("RENT_CAR"):
-        rate = float(data.get("rate_per_min", 0.0))
-        spd_cm_s = float(data.get("avg_speed_cm_s", 0.0))
-        return f"Rent a car @ ${rate:.2f}/min (avg ~{spd_cm_s/100.0:.1f} m/s)."
+        return "Rent a car."
     if str(kind).endswith("RETURN_CAR"):
         return "Return the rental car."
 

@@ -47,6 +47,16 @@ class Counters:
     help_given:    int = 0   # 我作为 helper 完成（push 给对方）
     help_received: int = 0   # 我作为 publisher 收到 helper 完成
     say          : int = 0   # 我发出的 chat 数量
+    
+    # 新增：动作统计
+    action_attempts: Dict[str, int] = field(default_factory=dict)  # 动作尝试次数
+    action_successes: Dict[str, int] = field(default_factory=dict)  # 动作成功次数
+    
+    # 新增：VLM统计
+    vlm_calls: int = 0
+    vlm_successes: int = 0
+    vlm_parse_failures: int = 0
+    vlm_retries: int = 0
 
 @dataclass
 class RunRecorder:
@@ -54,6 +64,7 @@ class RunRecorder:
     lifecycle_s: float
     export_path: str
     initial_balance: float = 0.0
+    model: str = ""
 
     # 内部时钟与累积
     started_sim_s: Optional[float] = None
@@ -127,6 +138,23 @@ class RunRecorder:
     def inc(self, name: str, k: int = 1):
         if hasattr(self.counters, name):
             setattr(self.counters, name, int(getattr(self.counters, name)) + int(k))
+
+    def inc_nested(self, key: str, k: int = 1):
+        """增加嵌套字典计数，如 action_attempts.VIEW_ORDERS"""
+        if "." not in key:
+            self.inc(key, k)
+            return
+        
+        prefix, suffix = key.split(".", 1)
+        if not hasattr(self.counters, prefix):
+            setattr(self.counters, prefix, {})
+        
+        nested_dict = getattr(self.counters, prefix)
+        if not isinstance(nested_dict, dict):
+            setattr(self.counters, prefix, {})
+            nested_dict = getattr(self.counters, prefix)
+        
+        nested_dict[suffix] = nested_dict.get(suffix, 0) + k
 
     # ===== 新接口：持续计时型（充电/租车）聚合 =====
     # 充电：tick 内仅累计；结束时一次 append
@@ -303,6 +331,28 @@ class RunRecorder:
             say=int(self.counters.say),
         )
 
+        # 计算动作成功率
+        action_stats = {}
+        for action_name in self.counters.action_attempts:
+            attempts = self.counters.action_attempts.get(action_name, 0)
+            successes = self.counters.action_successes.get(action_name, 0)
+            success_rate = _safe_div(successes, attempts)
+            action_stats[action_name] = {
+                "attempts": attempts,
+                "successes": successes,
+                "success_rate": success_rate
+            }
+        
+        # VLM统计
+        vlm_stats = {
+            "total_calls": int(self.counters.vlm_calls),
+            "successes": int(self.counters.vlm_successes),
+            "parse_failures": int(self.counters.vlm_parse_failures),
+            "retries": int(self.counters.vlm_retries),
+            "success_rate": _safe_div(self.counters.vlm_successes, self.counters.vlm_calls),
+            "parse_success_rate": _safe_div(self.counters.vlm_successes, max(1, self.counters.vlm_calls - self.counters.vlm_parse_failures))
+        }
+
         # ===== 汇总（六/八项在最前，其余保留在后）=====
         money_totals = dict(
             initial_earnings=start_balance,   # 1
@@ -343,6 +393,7 @@ class RunRecorder:
         report = dict(
             meta=dict(
                 agent_id=str(self.agent_id),
+                model=str(self.model),
                 lifecycle_hours=_safe_div(self.lifecycle_s, 3600.0),
                 started_sim_s=float(self.started_sim_s or 0.0),
                 ended_sim_s=float(self.ended_sim_s or 0.0),
@@ -397,7 +448,9 @@ class RunRecorder:
                 high_level_planning=high_level_planning,
                 common_sense_reasoning=common_sense_reasoning,
                 social_reasoning=social_reasoning
-            )
+            ),
+            actions=action_stats,
+            vlm=vlm_stats
         )
         return report
 

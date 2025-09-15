@@ -71,7 +71,15 @@ class BaseModel:
         top_p = self.top_p if top_p is None else float(top_p)
         rate = self.rate_limit_per_min if rate_limit_per_min is None else rate_limit_per_min
 
-        messages = [{"role": "system", "content": get_system_prompt()}]
+        messages = [
+            {
+                "role": "system", 
+                "content": get_system_prompt(), 
+                "cache_control": {"type": "ephemeral",},
+            },
+        ]
+
+        # print(f"System Prompt:\n{get_system_prompt()}")
 
         # 组装 user content
         user_content = [{"type": "text", "text": user_prompt}]
@@ -104,7 +112,7 @@ class BaseModel:
                     n=n,
                     **kwargs,
                 )
-                print(resp)
+                # print(resp)
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:
                 print(f"[BaseModel] generate attempt {i} failed: {e}")

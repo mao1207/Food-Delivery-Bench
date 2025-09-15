@@ -3,6 +3,8 @@
 
 import time, math, random
 import os
+import logging
+from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Optional, List, Tuple, Callable, Deque, Set
@@ -27,6 +29,51 @@ from utils.util import _ensure_png_bytes
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from llm.base_model import BaseModel
+
+# ===== Shared Logger Configuration =====
+def setup_delivery_logger(log_folder: str = "../../log", log_level: int = logging.DEBUG):
+    """
+    设置所有delivery agents的共享logger，将日志存储到文件
+    
+    Args:
+        log_file: 日志文件路径
+        log_level: 日志级别
+    """
+    os.makedirs(log_folder, exist_ok=True)
+    log_file = os.path.join(log_folder, f'delivery_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+    # 创建logger
+    logger = logging.getLogger('delivery_agents')
+    logger.setLevel(log_level)
+    
+    # 清除现有的handlers，避免重复
+    logger.handlers.clear()
+    
+    # 创建文件处理器
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    
+    # 创建控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+    
+    # 创建格式化器
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # 设置处理器格式
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    # 添加处理器到logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+# 初始化共享logger
+_shared_logger = setup_delivery_logger()
 
 
 # ===== Transport Modes =====
@@ -230,8 +277,11 @@ class DeliveryMan:
     pace_state: str = "normal"  # "accel" / "normal" / "decel"
     pace_scales: Dict[str, float] = field(init=False, repr=False)
 
+    logger: logging.Logger = field(init=False, repr=False)
+
 
     def __post_init__(self):
+        self.logger = _shared_logger.getChild(f"DeliveryMan{self.agent_id}")
                 
         self.avg_speed_by_mode = {
             TransportMode.WALK:      self.cfg["avg_speed_cm_s"]["walk"],
@@ -415,6 +465,7 @@ class DeliveryMan:
     def set_vlm_client(self, client: "BaseModel"):
         self._vlm_client = client
         self.vlm_infer_fn = self._vlm_infer
+        self._recorder.model = str(self._vlm_client.model)
 
     # ============== VLM 异步最小封装（仅网络在线程池；取图在主线程） ==============
     def set_vlm_executor(self, executor: Executor):
@@ -496,6 +547,10 @@ class DeliveryMan:
         解析 VLM 输出 -> 动作；若为拒答/解析失败则自动重试（带格式提示），直到成功或达上限。
         """
         raw = str(resp)
+        
+        # 记录VLM调用
+        if self._recorder:
+            self._recorder.inc("vlm_calls")
 
         try:
             act = parse_vlm_action(raw, self)  # 解析失败会抛 ValueError（见补丁 #1）
@@ -504,19 +559,26 @@ class DeliveryMan:
                 raise ValueError(f"bad return type: {type(act)}")
         except Exception as e:
             # 解析失败 -> 记录并再次请求
+            if self._recorder:
+                self._recorder.inc("vlm_parse_failures")
             self._retry_vlm(str(e), sample=raw)
             return
 
         # 成功：清空重试计数 & 提示，正常入队
         self._vlm_retry_count = 0
         self.vlm_ephemeral.pop("format_hint", None)
-        print(f"[VLM] parsed action: {act.kind} {act.data if act.data else ''}")
+        if self._recorder:
+            self._recorder.inc("vlm_successes")
+        # print(f"[VLM] parsed action: {act.kind} {act.data if act.data else ''}")
+        self.logger.info(f"[VLM] parsed action: {act.kind} {act.data if act.data else ''}")
         self.enqueue_action(act)
 
 
     def _retry_vlm(self, reason: str, sample: Optional[str] = None):
         """记录错误并立刻再次请求 VLM（带格式提醒），到达上限后给个温和兜底，避免死循环。"""
         self._vlm_retry_count += 1
+        if self._recorder:
+            self._recorder.inc("vlm_retries")
         self._vlm_last_bad_output = str(sample)[:160] if sample is not None else None
 
         # 这条提示会进 build_vlm_input() 的 ### ephemeral_context，帮助模型“对齐格式”
@@ -641,6 +703,7 @@ class DeliveryMan:
         if self._viewer and hasattr(self._viewer, "log_action"):
             prefix = f"[Agent {self._viewer_agent_id or self.name}] "
             self._viewer.log_action(prefix + text)
+            self.logger.info(f"[Agent {self.agent_id}] {text}")
         else:
             print(f"[DeliveryMan {self.name}] {text}")
 
@@ -834,18 +897,18 @@ class DeliveryMan:
         help_ids   = list(getattr(self, "help_orders", {}).keys())
         carrying_ids = list(self.carrying)
         mode_str = "towing a scooter" if self.towing_scooter else self.mode.value
-        speed_kmh = self.get_current_speed_for_viewer() * 0.036
+        speed_ms = self.speed_cm_s / 100
         lines = []
-        lines.append(f"You are Agent {self.agent_id}. There are {self.cfg.get('agent_count', 0)} deliveryagents in total in this city.")
-        lines.append(f"Your current mode is {mode_str}, at {self._fmt_xy_m(self.x, self.y)}.")
-        lines.append(f"Your speed ~{speed_kmh:.1f} km/h, energy {self.energy_pct:.0f}%.")
+        lines.append(f"You are Agent {self.agent_id}. There are {self.cfg.get('agent_count', 0)} delivery agents in total in this city.")
+        lines.append(f"Your current transport mode is {mode_str}, at {self._fmt_xy_m(self.x, self.y)}.")
+        lines.append(f"Your speed is ~{speed_ms:.1f} m/s, energy is {self.energy_pct:.0f}%.")
         pace_map = {"accel":"accelerating", "normal":"normal", "decel":"decelerating"}
         lines.append(f"Your current pace is {pace_map.get(self.pace_state,'normal')} (×{self._pace_scale():.2f}).")
-        lines.append(f"Earnings ${self.earnings_total:.2f}.")
+        lines.append(f"Earnings is ${self.earnings_total:.2f}.")
         if active_ids: lines.append(f"Active orders: {', '.join(map(str, active_ids))}.")
         if help_ids:   lines.append(f"Helping orders: {', '.join(map(str, help_ids))}.")
         if carrying_ids: lines.append(f"Carrying: {', '.join(map(str, carrying_ids))}.")
-        lines.append(f"Rest +{self.rest_rate_pct_per_min:.1f}%/min.")
+        lines.append(f"Rest energy recovery rate is +{self.rest_rate_pct_per_min:.1f}%/min.")
 
         if self.inventory:
             inv_str = ", ".join([f"{k} x{int(v)}" for k, v in self.inventory.items() if int(v) > 0]) or "empty"
@@ -856,11 +919,11 @@ class DeliveryMan:
         if self.e_scooter:
             rng_m = self._remaining_range_m(); rng_km = (rng_m/1000.0) if rng_m is not None else None
             park_str = f"parked at {self._fmt_xy_m_opt(self.e_scooter.park_xy)}" if self.e_scooter.park_xy else "not parked"
-            if rng_km is not None:
-                lines.append(f"Scooter {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range {rng_km:.1f} km.")
+            if rng_m is not None:
+                lines.append(f"Scooter: {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range {rng_m:.1f} m,")
             else:
-                lines.append(f"Scooter {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range N/A.")
-            lines.append(f"Charge {self.e_scooter.charge_rate_pct_per_min:.1f}%/min, {park_str}.")
+                lines.append(f"Scooter: {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range N/A,")
+            lines.append(f"charge rate {self.e_scooter.charge_rate_pct_per_min:.1f}%/min, {park_str}.")
         
         if self._charge_ctx:
             ctx = self._charge_ctx
@@ -881,7 +944,7 @@ class DeliveryMan:
             rng_m = float(asc.battery_pct) / max(1e-9, self.scooter_batt_decay_pct_per_m)
             rng_km = rng_m / 1000.0
             park_str = f"parked at {self._fmt_xy_m_opt(asc.park_xy)}" if asc.park_xy else "not parked"
-            lines.append(f"Assisting scooter (owner agent {owner}), batt {asc.battery_pct:.0f}%, range {rng_km:.1f} km, {park_str}.")
+            lines.append(f"Assisting scooter (owner agent {owner}), batt {asc.battery_pct:.0f}%, range {rng_m:.1f} m, {park_str}.")
 
         # --- 如果你的车已交给 TempBox，提示车在哪个 TempBox（publisher 视角） ---
         try:
@@ -1103,7 +1166,7 @@ class DeliveryMan:
         if self._nearest_poi_xy("car_rental", tol_cm=tol) is not None:
             if self.car is None:
                 self.vlm_ephemeral["rental_hint"] = (
-                    "You are at a car rental. You can RENT_CAR(rate_per_min=1.0, avg_speed_cm_s=2000)."
+                    "You are at a car rental. You can RENT_CAR()."
                 )
             else:
                 self.vlm_ephemeral["rental_hint"] = (
@@ -1263,7 +1326,7 @@ class DeliveryMan:
             parts.append("\n" + ("\n" + "-"*48 + "\n").join(active_blocks))
         else:
             # 没有接受任何订单时给出提示
-            parts.append("You currently have no accepted orders. Use VIEW_ORDERS to check available orders, and if the current context already contains detailed order information, use ACCEPT_ORDER to start earning money.")
+            parts.append("You currently have no accepted orders.")
 
         # === accepted_help===
         try:
@@ -1357,7 +1420,8 @@ class DeliveryMan:
 
         # 组 prompt + 渲染图片（这部分必须在主线程；你接受这点）
         prompt = self.build_vlm_input()
-        print(f'User Prompt:\n{prompt}')
+        # print(f'User Prompt:\n{prompt}')
+        self.logger.debug(f"[VLM] User Prompt:\n{prompt}")
 
         # 如果你希望渲染不计入虚拟时间，可临时 pause/resume（可选）
         # self.timers_pause()
@@ -1403,6 +1467,10 @@ class DeliveryMan:
         handler = self._action_handlers.get(act.kind)
         if handler is None:
             self._finish_action(success=False); return
+
+        if self._recorder:
+            self._recorder.inc_nested(f"action_attempts.{act.kind.value}")
+
         handler(self, act, allow_interrupt)
 
     def _finish_action(self, *, success: bool):
@@ -1410,6 +1478,11 @@ class DeliveryMan:
             self._current.on_done(self)
         if success and self._current:
             self._register_success(action_to_text(self._current))
+
+        if self._recorder and self._current and success:
+            action_name = self._current.kind.value
+            self._recorder.inc_nested(f"action_successes.{action_name}")
+            
         self._current = None
 
         if self._lifecycle_done:
@@ -2531,7 +2604,7 @@ class DeliveryMan:
 
         defs = self.cfg.get("rent_car_defaults", {})
         rate = float(act.data.get("rate_per_min", defs.get("rate_per_min", 1.0)))
-        speed = float(act.data.get("avg_speed_cm_s", defs.get("avg_speed_cm_s", 2000)))
+        speed = float(act.data.get("avg_speed_cm_s", defs.get("avg_speed_cm_s", 1200)))
         self.car = Car(owner_id=str(self.agent_id), avg_speed_cm_s=speed, rate_per_min=rate, state=CarState.USABLE, park_xy=None)
         self.set_mode(TransportMode.CAR)
         self._rental_ctx = {"last_tick_sim": self.clock.now_sim(), "rate_per_min": float(self.car.rate_per_min)}
@@ -3553,7 +3626,18 @@ class DeliveryMan:
             return
 
         # 上车
+        # 先检查余额是否足够（$1）
+        if float(self.earnings_total) + 1e-9 < 1.0:
+            self.vlm_add_error("board_bus failed: insufficient funds ($1 required)")
+            self._finish_action(success=False)
+            return
+
         if bus.board_passenger(str(self.agent_id)):
+            # 上车成功，扣费 $1
+            old_balance = float(self.earnings_total)
+            self.earnings_total = max(0.0, old_balance - 1.0)
+            if self._recorder:
+                self._recorder.inc("bus_board", 1)
             self._bus_ctx = {
                 "bus_id": bus_id,
                 "boarding_stop": current_stop.id if current_stop else "",
@@ -3568,7 +3652,7 @@ class DeliveryMan:
             self.vlm_add_error("board_bus failed: could not board")
             self._finish_action(success=False)
             # print("board_bus failed: could not board")
-
+            
     def _update_bus_riding(self, now: float):
         """更新乘坐公交状态"""
         if not self._bus_ctx or not self._bus_manager:
