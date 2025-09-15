@@ -82,7 +82,8 @@ class Communicator(UnrealCvDelivery):
             self.set_collision(name, True)
             self.set_movable(name, True)
 
-    def destroy_customer(self, name: str) -> None:
+    def destroy_customer(self, order_id: int) -> None:
+        name = f"GEN_CUSTOMER_{order_id}"
         with self._send_lock:
             self.destroy(name)
 

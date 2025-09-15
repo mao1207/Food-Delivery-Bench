@@ -1783,6 +1783,9 @@ class DeliveryMan:
             # 自己订单：保持你原本“自动 dropoff 时”的结算效果
             self._dropoff_settle_record(order_obj)
             self._finish_action(success=True)
+
+            if is_handoff_allowed and handoff_address:
+                self._ue.destroy_customer(order_obj.id)
             return
 
         # helper：推送“我已送达”，移出本地 help_orders，进入等待 ACK 集
@@ -1814,6 +1817,8 @@ class DeliveryMan:
 
         self._finish_action(success=True)
 
+        if is_handoff_allowed and handoff_address:
+            self._ue.destroy_customer(order_obj.id)
 
 
     # ===== Charging (ESCOOTER) =====
