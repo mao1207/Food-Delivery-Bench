@@ -36,16 +36,17 @@ class BaseModel:
         self.rate_limit_per_min = rate_limit_per_min
 
         # 自动判断是否支持视觉；也可在 __init__ 里手动传 supports_vision 覆盖
-        if supports_vision is None:
-            m = model.lower()
-            self.supports_vision = any(
-                key in m
-                for key in [
-                    "gpt-4o", "4.1", "vision", "vlm", "llava", "gemini", "gpt-o"
-                ]
-            )
-        else:
-            self.supports_vision = bool(supports_vision)
+        # if supports_vision is None:
+        #     m = model.lower()
+        #     self.supports_vision = any(
+        #         key in m
+        #         for key in [
+        #             "gpt-4o", "4.1", "vision", "vlm", "llava", "gemini", "gpt-o"
+        #         ]
+        #     )
+        # else:
+        #     self.supports_vision = bool(supports_vision)
+        self.supports_vision = True
 
     # --------- 公共入口：只要 prompt + images，返回文本 ---------
     def generate(
@@ -57,7 +58,7 @@ class BaseModel:
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
         n: int = 1,
-        retry: int = 8,
+        retry: int = 3,
         rate_limit_per_min: Optional[int] = None,
         **kwargs,
     ) -> str:
@@ -71,13 +72,21 @@ class BaseModel:
         top_p = self.top_p if top_p is None else float(top_p)
         rate = self.rate_limit_per_min if rate_limit_per_min is None else rate_limit_per_min
 
-        messages = [
-            {
-                "role": "system", 
-                "content": get_system_prompt(), 
-                "cache_control": {"type": "ephemeral",},
-            },
-        ]
+        if 'mistral' in self.model.lower():
+            messages = [
+                {
+                    "role": "system", 
+                    "content": get_system_prompt()
+                },
+            ]
+        else:
+            messages = [
+                {
+                    "role": "system", 
+                    "content": get_system_prompt(), 
+                    "cache_control": {"type": "ephemeral",},
+                },
+            ]
 
         # print(f"System Prompt:\n{get_system_prompt()}")
 

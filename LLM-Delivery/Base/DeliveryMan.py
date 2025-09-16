@@ -31,30 +31,35 @@ if TYPE_CHECKING:
     from llm.base_model import BaseModel
 
 # ===== Shared Logger Configuration =====
-def setup_delivery_logger(log_folder: str = "../../log", log_level: int = logging.DEBUG):
+def setup_delivery_logger(log_folder: str = "../../log", 
+                         file_log_level: int = logging.DEBUG, 
+                         console_log_level: int = logging.INFO):
     """
     设置所有delivery agents的共享logger，将日志存储到文件
     
     Args:
-        log_file: 日志文件路径
-        log_level: 日志级别
+        log_folder: 日志文件夹路径
+        file_log_level: 文件日志级别（所有级别都会输出到文件）
+        console_log_level: 控制台日志级别（只有指定级别及以上才会输出到控制台）
     """
     os.makedirs(log_folder, exist_ok=True)
     log_file = os.path.join(log_folder, f'delivery_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+    
     # 创建logger
     logger = logging.getLogger('delivery_agents')
-    logger.setLevel(log_level)
+    # 设置logger级别为最低级别，让所有消息都能通过
+    logger.setLevel(logging.DEBUG)
     
     # 清除现有的handlers，避免重复
     logger.handlers.clear()
     
-    # 创建文件处理器
+    # 创建文件处理器 - 输出所有级别的日志
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(file_log_level)  # 文件记录所有级别
     
-    # 创建控制台处理器
+    # 创建控制台处理器 - 只输出指定级别及以上的日志
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
+    console_handler.setLevel(console_log_level)  # 控制台只显示指定级别
     
     # 创建格式化器
     formatter = logging.Formatter(
@@ -72,8 +77,8 @@ def setup_delivery_logger(log_folder: str = "../../log", log_level: int = loggin
     
     return logger
 
-# 初始化共享logger
-_shared_logger = setup_delivery_logger()
+# 初始化共享logger - 可以根据需要调整控制台级别
+_shared_logger = setup_delivery_logger(console_log_level=logging.INFO)
 
 
 # ===== Transport Modes =====
@@ -184,6 +189,10 @@ class DeliveryMan:
     _recorder: Optional[RunRecorder] = field(default=None, repr=False)
     _sim_active_elapsed_s: float = 0.0
     _lifecycle_done: bool = False
+    
+    # realtime lifecycle tracking
+    _realtime_start_ts: Optional[float] = field(default=None, repr=False)
+    _realtime_stop_hours: float = 0.0
 
     # history
     completed_orders: List[Dict[str, Any]] = field(default_factory=list)
@@ -191,10 +200,10 @@ class DeliveryMan:
     # ----- HELP DELIVERY 追踪 -----
     helping_order_ids: Set[int] = field(default_factory=set)              # 我作为 helper 正在帮送的 order_id
     _help_delivery_req_by_oid: Dict[int, int] = field(default_factory=dict, repr=False)  # order_id -> req_id
-    help_completed_order_ids: Set[int] = field(default_factory=set)       # 我作为 publisher 已通过 Comm 收到“完成”并已结算的 order_id
+    help_completed_order_ids: Set[int] = field(default_factory=set)       # 我作为 publisher 已通过 Comm 收到"完成"并已结算的 order_id
     _helping_wait_ack_oids: Set[int] = field(default_factory=set, repr=False)            # 我作为 helper 已推送完成消息，等待对方结算的 order_id
 
-    # DeliveryMan dataclass 字段里新增（放在“----- HELP DELIVERY 追踪 -----”附近即可）
+    # DeliveryMan dataclass 字段里新增（放在"----- HELP DELIVERY 追踪 -----"附近即可）
     help_orders: Dict[int, Any] = field(default_factory=dict)          # 我作为 helper 正在处理的订单：oid -> order_obj
     help_orders_completed: Set[int] = field(default_factory=set)       # 我作为 helper 已送到并上报过完成（等待赏金/或已拿到）的 oid
     accepted_help: Dict[int, Any] = field(default_factory=dict)    # req_id -> HelpRequest
@@ -383,13 +392,19 @@ class DeliveryMan:
             str(life_cfg.get("export_path", ".")),
             f"run_report_agent{self.agent_id}.json"
         )
+        # --- Realtime lifecycle tracking ---
+        self._realtime_start_ts = time.time()
+        self._realtime_stop_hours = float(life_cfg.get("realtime_stop_hours", 0.0))
+        
         self._recorder = RunRecorder(
             agent_id=str(self.agent_id),
             lifecycle_s=float(life_s if life_s > 0 else 0.0),
             export_path=export_path,
             initial_balance=float(self.earnings_total),
+            realtime_stop_hours=self._realtime_stop_hours,
+            realtime_start_ts=self._realtime_start_ts,
         )
-        self._recorder.start(self.clock.now_sim())
+        self._recorder.start(self.clock.now_sim(), self._realtime_start_ts)
 
 
     def _save_png(self, data: bytes, path: str) -> bool:
@@ -489,7 +504,7 @@ class DeliveryMan:
         # 主线程采图（Qt/pyqtgraph 必须在主线程）
         images = self.vlm_collect_images()
 
-        # 打标记，防止旧结果“晚归”
+        # 打标记，防止旧结果"晚归"
         self._vlm_token_ctr += 1
         token = self._vlm_token_ctr
         self._vlm_inflight_token = token
@@ -581,7 +596,7 @@ class DeliveryMan:
             self._recorder.inc("vlm_retries")
         self._vlm_last_bad_output = str(sample)[:160] if sample is not None else None
 
-        # 这条提示会进 build_vlm_input() 的 ### ephemeral_context，帮助模型“对齐格式”
+        # 这条提示会进 build_vlm_input() 的 ### ephemeral_context，帮助模型"对齐格式"
         self.vlm_ephemeral["format_hint"] = (
             "Your previous output was invalid. Reply with exactly ONE action call from the Action API. "
             "No explanations or apologies."
@@ -702,7 +717,7 @@ class DeliveryMan:
     def _log(self, text: str):
         if self._viewer and hasattr(self._viewer, "log_action"):
             prefix = f"[Agent {self._viewer_agent_id or self.name}] "
-            self._viewer.log_action(prefix + text)
+            self._viewer.log_action(prefix + text, also_print=False)
             self.logger.info(f"[Agent {self.agent_id}] {text}")
         else:
             print(f"[DeliveryMan {self.name}] {text}")
@@ -810,7 +825,7 @@ class DeliveryMan:
                     "or keep dragging it to a charging station and then CHARGE_ESCOOTER(target_pct=80)."
                 )
                 self.set_mode(TransportMode.DRAG_SCOOTER)
-        # 其他载具（car/bus）目前不模拟载具能耗；后续要加“油/电”也可在这里扩展。
+        # 其他载具（car/bus）目前不模拟载具能耗；后续要加"油/电"也可在这里扩展。
 
     def _consume_by_distance(self, distance_cm: float):
         distance_m = max(0.0, float(distance_cm) / 100.0)
@@ -819,10 +834,10 @@ class DeliveryMan:
 
         self._recalc_towing()
 
-        # 先统一从“人”的体力扣除（所有 mode 都会消耗，包括 WALK/SCOOTER/CAR/BUS/DRAG_SCOOTER）
+        # 先统一从"人"的体力扣除（所有 mode 都会消耗，包括 WALK/SCOOTER/CAR/BUS/DRAG_SCOOTER）
         self._consume_personal_energy_by_distance(distance_m)
 
-        # 再按需要扣“载具”的能量/电量（目前仅电瓶车）
+        # 再按需要扣"载具"的能量/电量（目前仅电瓶车）
         self._consume_vehicle_by_distance(distance_m)
 
     def _sync_help_lists(self) -> None:
@@ -1048,7 +1063,7 @@ class DeliveryMan:
         all_considered: List[Any] = list(self.active_orders or []) + list(getattr(self, "help_orders", {}).values())
 
         for o in all_considered:
-            # 只看“尚未取餐”的订单
+            # 只看"尚未取餐"的订单
             if getattr(o, "has_picked_up", False):
                 continue
 
@@ -1056,7 +1071,7 @@ class DeliveryMan:
             if not pu or not self._is_at_xy(pu[0], pu[1], tol_cm=tol):
                 continue
 
-            # —— 使用“订单的活动时间”而不是全局 now_sim ——
+            # —— 使用"订单的活动时间"而不是全局 now_sim ——
             local_now = o.active_now()
 
             # 若有 is_ready_for_pickup 则用它；否则视为已备好
@@ -1110,12 +1125,12 @@ class DeliveryMan:
         # (B) At a charging station & scooter is with you (towing or parked here) -> hint charge + retrieve
         near_chg = self._nearest_poi_xy("charging_station", tol_cm=tol)
         if near_chg:
-            # 仍按原规则选择“用于充电”的候选：优先 assist，其次 with_owner 的自车
+            # 仍按原规则选择"用于充电"的候选：优先 assist，其次 with_owner 的自车
             sc_charge = self.assist_scooter if self.assist_scooter is not None else (
                 self.e_scooter if (self.e_scooter and getattr(self.e_scooter, "with_owner", True)) else None
             )
 
-            # 额外：检测“任意一辆停在脚边的车”（不看 with_owner）
+            # 额外：检测"任意一辆停在脚边的车"（不看 with_owner）
             parked_here_cmd = None
             for label, s in (("assist", self.assist_scooter), ("own", self.e_scooter)):
                 if s is not None and getattr(s, "park_xy", None) and self._is_at_xy(s.park_xy[0], s.park_xy[1], tol_cm=tol):
@@ -1780,7 +1795,7 @@ class DeliveryMan:
         - tol_cm: float 位置容差（可选，默认 300）
         规则：
         - 必须在该订单 dropoff 点附近（tol 内）
-        - 必须是“已取餐且未送达”的订单
+        - 必须是"已取餐且未送达"的订单
         - 一次只处理一个订单
         - 对于自己的订单：物理卸载 -> 结算记录（保持你原先自动结算的效果）
         - 对于我作为 helper 的订单：仅物理卸载 + 向 Comms 推送 helper delivered
@@ -1799,7 +1814,7 @@ class DeliveryMan:
 
         tol = float(act.data.get("tol_cm", self._tol("nearby")))
 
-        # 2) 判定是“自己的订单”还是“帮别人送的订单”
+        # 2) 判定是"自己的订单"还是"帮别人送的订单"
         order_obj = next((o for o in self.active_orders if int(getattr(o, "id", -1)) == oid), None)
         is_helper = False
         if order_obj is None:
@@ -1853,7 +1868,7 @@ class DeliveryMan:
 
         # 6) 分流：自己的单 -> 直接结算；帮别人 -> 推消息，等待对方结算
         if not is_helper:
-            # 自己订单：保持你原本“自动 dropoff 时”的结算效果
+            # 自己订单：保持你原本"自动 dropoff 时"的结算效果
             self._dropoff_settle_record(order_obj)
             self._finish_action(success=True)
 
@@ -1861,7 +1876,7 @@ class DeliveryMan:
                 self._ue.destroy_customer(order_obj.id)
             return
 
-        # helper：推送“我已送达”，移出本地 help_orders，进入等待 ACK 集
+        # helper：推送"我已送达"，移出本地 help_orders，进入等待 ACK 集
         comms = get_comms()
         if not comms:
             self.vlm_add_error("drop_off failed: comms unavailable for helper delivery")
@@ -1924,7 +1939,7 @@ class DeliveryMan:
         def _parked_nearby(s):
             return bool(s and s.park_xy and self._is_at_xy(s.park_xy[0], s.park_xy[1], tol_cm=tol))
 
-        # 只在“在身边或停在附近”中选；优先他人车
+        # 只在"在身边或停在附近"中选；优先他人车
         candidates = []
         if self.assist_scooter:
             candidates.append(("assist", self.assist_scooter))
@@ -1941,7 +1956,7 @@ class DeliveryMan:
             self.vlm_add_error("charge failed: scooter not with you and not parked nearby")
             self._finish_action(success=False); return
 
-        # 只有真在身边（骑/拖）时才就地 park；停在附近则保持原 park_xy，不许“瞬移”
+        # 只有真在身边（骑/拖）时才就地 park；停在附近则保持原 park_xy，不许"瞬移"
         if with_me:
             sc.park_here(self.x, self.y)
             if self.mode in (TransportMode.SCOOTER, TransportMode.DRAG_SCOOTER):
@@ -2179,14 +2194,14 @@ class DeliveryMan:
         # 3) 状态与模式处理：
         # - 正在拖车：立刻切换为骑行（已满电）
         # - 正在骑行：保持骑行
-        # - 车停在旁边：保持“停放”状态，不自动上车
+        # - 车停在旁边：保持"停放"状态，不自动上车
         if self.mode == TransportMode.DRAG_SCOOTER:
             self.e_scooter.state = ScooterState.USABLE
             self.set_mode(TransportMode.SCOOTER)
         elif self.mode == TransportMode.SCOOTER:
             self.e_scooter.state = ScooterState.USABLE
         else:
-            # 这里表示车是“停在附近”的场景，充完仍保持 PARKED，更贴近现实
+            # 这里表示车是"停在附近"的场景，充完仍保持 PARKED，更贴近现实
             self.e_scooter.state = ScooterState.PARKED
 
         self._log(f"used '{item_id}': scooter battery -> 100% (remaining {self.inventory.get(item_id, 0)})")
@@ -2268,7 +2283,7 @@ class DeliveryMan:
         - HELP_PICKUP  ：必须有 order_id，且必须给出 deliver_xy；忽略/不传 provide_xy
         - HELP_BUY     ：必须有 buy_list，且必须给出 deliver_xy
         - HELP_CHARGE  ：必须给出 provide_xy 与 deliver_xy；target_pct 可选（默认 100）
-        禁止任何坐标“缺省兜底”。缺字段直接报错并失败。
+        禁止任何坐标"缺省兜底"。缺字段直接报错并失败。
         """
         self.vlm_clear_ephemeral()
         comms = get_comms()
@@ -2469,10 +2484,10 @@ class DeliveryMan:
         - to="car"
         - to="drag_scooter" / "drag"：显式切到拖拽（优先拖 assist 车；否则拖自车）
         规则要点：
-        - 切到“拖拽”时，不会把电瓶车先 park_here（避免状态抖动）；
+        - 切到"拖拽"时，不会把电瓶车先 park_here（避免状态抖动）；
         - 切到其它模式时：
             * 汽车：必须先 park_here（若当前在开车）；
-            * 自己的电瓶车：只有在“非拖拽切换”时才自动 park_here。
+            * 自己的电瓶车：只有在"非拖拽切换"时才自动 park_here。
         """
         to = str(act.data.get("to", "")).strip().lower()
         tol = self._tol("nearby")
@@ -2482,7 +2497,7 @@ class DeliveryMan:
         # 车：无论切到什么都先停好
         if self.mode == TransportMode.CAR and self.car:
             self.car.park_here(self.x, self.y)
-        # 自己的电瓶车：仅当不是“切到拖拽”时，才自动在脚下 park
+        # 自己的电瓶车：仅当不是"切到拖拽"时，才自动在脚下 park
         if not want_drag and self.e_scooter and getattr(self.e_scooter, "with_owner", True):
             if self.mode == TransportMode.SCOOTER or (self.mode == TransportMode.DRAG_SCOOTER and self.assist_scooter is None):
                 self.e_scooter.park_here(self.x, self.y)
@@ -2697,7 +2712,7 @@ class DeliveryMan:
             scooter_to_place.park_here(float(lx), float(ly))
             payload["escooter"] = scooter_to_place
 
-            # NEW: 如果放的是“我的车”，标记交接态（不断引用）
+            # NEW: 如果放的是"我的车"，标记交接态（不断引用）
             if is_my_scooter:
                 setattr(self.e_scooter, "with_owner", False)
 
@@ -2720,7 +2735,7 @@ class DeliveryMan:
             if self.inventory[k] <= 0: self.inventory.pop(k, None)
 
         if want_food:
-            # 从保温袋移除（若之前已经放袋）+ 从“待放队列”清理
+            # 从保温袋移除（若之前已经放袋）+ 从"待放队列"清理
             if self.insulated_bag:
                 all_items = []
                 for items in food_by_order.values():
@@ -2807,7 +2822,7 @@ class DeliveryMan:
             self.vlm_add_error(f"take_from_temp_box failed: {msg}")
             self._finish_action(success=False); return
 
-        # 4) 空 payload 也算失败，避免“成功但什么都没变”的卡死
+        # 4) 空 payload 也算失败，避免"成功但什么都没变"的卡死
         if not (payload.get("inventory") or payload.get("food_by_order") or (payload.get("escooter") is not None)):
             self.vlm_add_error("take_from_temp_box failed: TempBox is empty")
             self._finish_action(success=False); return
@@ -2839,7 +2854,7 @@ class DeliveryMan:
                 setattr(self.e_scooter, "with_owner", True)
 
             else:
-                # 别人的车：沿用你原逻辑作为 assist_scooter（这就是“同一台车”的共享引用）
+                # 别人的车：沿用你原逻辑作为 assist_scooter（这就是"同一台车"的共享引用）
                 if self.assist_scooter is None:
                     self.assist_scooter = sc
                     setattr(self.assist_scooter, "proxy_helper_id", str(self.agent_id))
@@ -2929,7 +2944,7 @@ class DeliveryMan:
                 if tail:
                     per_order_cmd[oid] = tail
         else:
-            # 没写 "order <id>:" 的简写：只在“仅有一个待放订单”时允许
+            # 没写 "order <id>:" 的简写：只在"仅有一个待放订单"时允许
             if len(self._pending_food_by_order) == 1:
                 only_oid = next(iter(self._pending_food_by_order.keys()))
                 per_order_cmd[int(only_oid)] = spec_text
@@ -2964,7 +2979,7 @@ class DeliveryMan:
                 order_cmd = per_order_cmd[int(oid)]
                 # 针对该订单重新编号 1..N
                 items_map = {i + 1: items[i] for i in range(len(items))}
-                # 先按命令调整已有物品布局，再把“待放物”放入
+                # 先按命令调整已有物品布局，再把"待放物"放入
                 tmp_bag.move_items(order_cmd)
                 tmp_bag.add_items(order_cmd, items_map)
 
@@ -3013,7 +3028,7 @@ class DeliveryMan:
 
     # ===== auto dropoff =====
     def _dropoff_physical_unload(self, order: Any) -> None:
-        """只做‘物理卸载’：从保温袋移除该单所有 item、caring 列表移除、清理待放队列。"""
+        """只做'物理卸载'：从保温袋移除该单所有 item、caring 列表移除、清理待放队列。"""
         oid = int(getattr(order, "id", -1))
         items = list(getattr(order, "items", []) or [])
         if self.insulated_bag and hasattr(self.insulated_bag, "remove_items") and items:
@@ -3024,7 +3039,7 @@ class DeliveryMan:
             self._pending_food_by_order.pop(oid, None)
 
     def _dropoff_settle_record(self, order: Any) -> None:
-        """只做‘结算+记录+日志’，不动保温袋、不动 carrying。"""
+        """只做'结算+记录+日志'，不动保温袋、不动 carrying。"""
         oid = getattr(order, "id", None)
 
         # 标记送达&时间戳
@@ -3137,7 +3152,7 @@ class DeliveryMan:
                     # 可能已被我手动结算或不在 active；忽略
                     continue
 
-                # 只做‘结算+记录’，不做物理卸载（包与 carrying 由对方实际处理）
+                # 只做'结算+记录'，不做物理卸载（包与 carrying 由对方实际处理）
                 self._dropoff_settle_record(order_obj)
                 self.help_completed_order_ids.add(oid)
 
@@ -3264,7 +3279,7 @@ class DeliveryMan:
             except Exception:
                 pass
         if hint:
-            # 用“原因”作为 ephemeral key，便于在 prompt 里按需展示
+            # 用"原因"作为 ephemeral key，便于在 prompt 里按需展示
             self.vlm_ephemeral[str(reason)] = str(hint)
         self._log(f"interrupt: {reason} -> stop moving & wait for decision")
         if reason == "escooter_depleted" and self._recorder:
@@ -3302,6 +3317,29 @@ class DeliveryMan:
 
             # 到点立即停止（只触发一次），并导出报告
             if rec.should_end():
+                # 确定停止原因
+                stop_reason = "unknown"
+                stop_message = "Lifecycle reached. Stopping this run."
+                
+                # 检查虚拟时间停止
+                sim_time_end = (rec.lifecycle_s > 0) and (rec.active_elapsed_s >= rec.lifecycle_s)
+                # 检查现实时间停止
+                realtime_end = False
+                if rec.realtime_stop_hours > 0 and rec.realtime_start_ts is not None:
+                    current_realtime = time.time()
+                    elapsed_realtime_hours = (current_realtime - rec.realtime_start_ts) / 3600.0
+                    realtime_end = elapsed_realtime_hours >= rec.realtime_stop_hours
+                
+                if sim_time_end and realtime_end:
+                    stop_reason = "both_times_reached"
+                    stop_message = f"Both simulation time ({rec.active_elapsed_s/3600:.2f}h) and real time ({elapsed_realtime_hours:.2f}h) reached. Stopping this run."
+                elif sim_time_end:
+                    stop_reason = "sim_time_reached"
+                    stop_message = f"Simulation time reached ({rec.active_elapsed_s/3600:.2f}h). Stopping this run."
+                elif realtime_end:
+                    stop_reason = "realtime_reached"
+                    stop_message = f"Real time reached ({elapsed_realtime_hours:.2f}h). Stopping this run."
+                
                 rec.mark_end(now_sim=now)
                 # 先收口持续计时会话，避免漏账/爆量
                 rec.finish_charging(end_ts=now, reason="lifecycle_end")
@@ -3314,7 +3352,7 @@ class DeliveryMan:
                         comms.release_charging_spot(key, agent_id=str(self.agent_id))
                     self._charge_ctx = None
 
-                self._interrupt_and_stop("lifecycle_ended", "Lifecycle reached. Stopping this run.")
+                self._interrupt_and_stop("lifecycle_ended", stop_message)
                 try:
                     path = rec.export(self)
                     self._log(f"run report exported to {path}")

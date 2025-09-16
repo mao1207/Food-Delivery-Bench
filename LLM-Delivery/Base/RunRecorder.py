@@ -71,6 +71,10 @@ class RunRecorder:
     ended_sim_s:   Optional[float] = None
     active_elapsed_s: float = 0.0  # 仅在“未暂停”时累加（由外部驱动）
     done: bool = False
+    
+    # 现实时间停止支持
+    realtime_stop_hours: float = 0.0
+    realtime_start_ts: Optional[float] = None
 
     # 订单/活动统计（导出时也会从 dm.completed_orders 再扫一遍补全）
     # 这里保持轻量，避免和主逻辑重叠
@@ -82,16 +86,31 @@ class RunRecorder:
     _rental_acc:   Optional[Dict[str, Any]] = field(default=None, repr=False)
 
     # —— 事件接口（在 DM 各位置调用）——
-    def start(self, now_sim: float):
+    def start(self, now_sim: float, realtime_start_ts: Optional[float] = None):
         if self.started_sim_s is None:
             self.started_sim_s = float(now_sim)
+        if realtime_start_ts is not None:
+            self.realtime_start_ts = float(realtime_start_ts)
 
     def tick_active(self, delta_s: float):
         if delta_s > 0:
             self.active_elapsed_s += float(delta_s)
 
     def should_end(self) -> bool:
-        return (not self.done) and (self.lifecycle_s > 0) and (self.active_elapsed_s >= self.lifecycle_s)
+        if self.done:
+            return False
+        
+        # 检查虚拟时间停止
+        sim_time_end = (self.lifecycle_s > 0) and (self.active_elapsed_s >= self.lifecycle_s)
+        
+        # 检查现实时间停止
+        realtime_end = False
+        if self.realtime_stop_hours > 0 and self.realtime_start_ts is not None:
+            current_realtime = time.time()
+            elapsed_realtime_hours = (current_realtime - self.realtime_start_ts) / 3600.0
+            realtime_end = elapsed_realtime_hours >= self.realtime_stop_hours
+        
+        return sim_time_end or realtime_end
 
     def mark_end(self, now_sim: float):
         self.ended_sim_s = float(now_sim)
@@ -350,7 +369,7 @@ class RunRecorder:
             "parse_failures": int(self.counters.vlm_parse_failures),
             "retries": int(self.counters.vlm_retries),
             "success_rate": _safe_div(self.counters.vlm_successes, self.counters.vlm_calls),
-            "parse_success_rate": _safe_div(self.counters.vlm_successes, max(1, self.counters.vlm_calls - self.counters.vlm_parse_failures))
+            "parse_success_rate": _safe_div(self.counters.vlm_calls - self.counters.vlm_parse_failures, self.counters.vlm_calls)
         }
 
         # ===== 汇总（六/八项在最前，其余保留在后）=====

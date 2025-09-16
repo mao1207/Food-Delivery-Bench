@@ -71,11 +71,12 @@
   },
   "settlement": {},
   "lifecycle": {
-    "duration_hours": 0.02,
-    "export_path": "../../results"
+    "duration_hours": 0.5,
+    "export_path": "../../results",
+    "realtime_stop_hours": 0.5
   },
 
-  "agent_count": 2,
+  "agent_count": 8,
 
   "ambient_temp_c": 22.0,
   "k_food_per_s": 0.0005555555555555556,

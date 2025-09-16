@@ -45,7 +45,7 @@ AGENT_FILL   = "#E0E0E0"
 AGENT_BORDER = "#000000"
 AGENT_TEXT   = "#000000"
 AGENT_Z      = 20
-DEFAULT_TICK_MS = 30
+DEFAULT_TICK_MS = 100
 
 BADGE_OFFSET_X_CM = 420.0
 BADGE_OFFSET_Y_CM = -420.0
@@ -1225,10 +1225,10 @@ class MapObserver(MapCanvasBase):
         self._last_sim_ts = now_sim
 
         # 1) 只有当 agent 没有开启自线程时，才由 UI 线程代跑时间推进（兼容旧模式）
-        for aid, rec in list(self._agents.items()):
-            dm = rec.get('dm')
-            if dm is not None and getattr(dm, "_loop_thread", None) is None and hasattr(dm, "poll_time_events"):
-                dm.poll_time_events()
+        # for aid, rec in list(self._agents.items()):
+        #     dm = rec.get('dm')
+        #     if dm is not None and getattr(dm, "_loop_thread", None) is None and hasattr(dm, "poll_time_events"):
+        #         dm.poll_time_events()
 
         # 2) 从 UE 拉位置并同步 & 中断/到达判定
         for aid, rec in list(self._agents.items()):
@@ -1892,6 +1892,8 @@ class MapObserver(MapCanvasBase):
         return (x, y)
 
     def log_action(self, msg: str, *, also_print: bool = True, max_lines: int = 200):
+        return  # disable log in QT to speed up
+
         try:
             cur = self.info.toPlainText() if hasattr(self, "info") else ""
         except Exception:

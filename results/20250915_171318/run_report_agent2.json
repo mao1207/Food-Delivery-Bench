@@ -1,22 +1,22 @@
 {
   "meta": {
-    "agent_id": "1",
-    "model": "gpt-4o-mini",
-    "lifecycle_hours": 0.02,
-    "started_sim_s": 14.625,
-    "ended_sim_s": 251.43900000007125,
-    "active_elapsed_s": 72.04499999969266,
-    "active_hours": 0.02001249999991463,
-    "wall_finished_ts": 1757978158.7632275
+    "agent_id": "2",
+    "model": "qwen/qwen-2.5-vl-7b-instruct",
+    "lifecycle_hours": 0.5,
+    "started_sim_s": 14.343000000051688,
+    "ended_sim_s": 6495.5160000000615,
+    "active_elapsed_s": 1800.332999999402,
+    "active_hours": 0.500092499999834,
+    "wall_finished_ts": 1757983763.5617566
   },
   "money": {
     "totals": {
       "initial_earnings": 100.0,
-      "current_balance": 100.0,
-      "net_growth": 0.0,
+      "current_balance": 80.0,
+      "net_growth": -20.0,
       "orders_income": 0.0,
       "help_income": 0.0,
-      "expense_total": 0.0,
+      "expense_total": 20.0,
       "base_wage": 0.0,
       "bonus": 0.0,
       "help_expense": 0.0,
@@ -24,7 +24,7 @@
         "purchases": 0.0,
         "charging": 0.0,
         "rental": 0.0,
-        "hospital": 0.0,
+        "hospital": 20.0,
         "help_expense": 0.0
       },
       "advances": {
@@ -32,25 +32,30 @@
         "returned": 0.0,
         "net": 0.0
       },
-      "observed_agent_balance_end": 100.0
+      "observed_agent_balance_end": 80.0
     },
     "per_hour": {
-      "net_growth": 0.0,
+      "net_growth": -39.99260136876006,
       "orders_income": 0.0,
       "help_income": 0.0,
-      "expense_total": 0.0,
+      "expense_total": 39.99260136876006,
       "base_wage": 0.0,
       "bonus": 0.0,
-      "initial_earnings": 4996.876951926375,
-      "current_balance": 4996.876951926375,
+      "initial_earnings": 199.9630068438003,
+      "current_balance": 159.97040547504025,
       "help_expense": 0.0,
-      "observed_agent_balance_end": 4996.876951926375
+      "observed_agent_balance_end": 159.97040547504025
     },
     "details": {
       "purchases": [],
       "charging": [],
       "rental": [],
-      "hospital": [],
+      "hospital": [
+        {
+          "ts_sim": 5501.718000000052,
+          "fee": 20.0
+        }
+      ],
       "help_income": [],
       "help_expense": [],
       "advance_out": [],
@@ -75,8 +80,8 @@
     "avg_order_time_s": 0.0
   },
   "interruptions": {
-    "scooter_depleted": 0,
-    "hospital_rescue": 0,
+    "scooter_depleted": 1,
+    "hospital_rescue": 1,
     "rent_insufficient": 0,
     "charge_insufficient": 0
   },
@@ -91,8 +96,8 @@
       "active_time_ratio": 0.0,
       "orders_per_hour": 0.0,
       "avg_order_time_s": 0.0,
-      "scooter_depleted_events": 0,
-      "hospital_rescue_times": 0,
+      "scooter_depleted_events": 1,
+      "hospital_rescue_times": 1,
       "rent_insufficient_times": 0,
       "charge_insufficient_times": 0
     },
@@ -112,37 +117,27 @@
   },
   "actions": {
     "view_orders": {
-      "attempts": 1,
-      "successes": 1,
-      "success_rate": 1.0
-    },
-    "accept_order": {
-      "attempts": 1,
-      "successes": 1,
+      "attempts": 10,
+      "successes": 10,
       "success_rate": 1.0
     },
     "move_to": {
-      "attempts": 5,
-      "successes": 5,
+      "attempts": 58,
+      "successes": 58,
       "success_rate": 1.0
     },
-    "pickup": {
-      "attempts": 1,
-      "successes": 0,
-      "success_rate": 0.0
-    },
-    "wait": {
-      "attempts": 1,
-      "successes": 0,
-      "success_rate": 0.0
+    "accept_order": {
+      "attempts": 3,
+      "successes": 1,
+      "success_rate": 0.3333333333333333
     }
   },
   "vlm": {
-    "total_calls": 9,
-    "successes": 9,
-    "parse_failures": 0,
-    "retries": 0,
-    "success_rate": 1.0,
+    "total_calls": 91,
+    "successes": 72,
+    "parse_failures": 19,
+    "retries": 19,
+    "success_rate": 0.7912087912087912,
     "parse_success_rate": 1.0
   }
 }
