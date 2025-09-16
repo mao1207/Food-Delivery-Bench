@@ -7,13 +7,13 @@
     "bus": 1000
   },
   "energy_pct_decay_per_m_by_mode": {
-    "walk": 0.01,
-    "drag_scooter": 0.08,
-    "e-scooter": 0.008,
-    "car": 0.005,
-    "bus": 0.004
+    "walk": 0.1,
+    "drag_scooter": 0.12,
+    "e-scooter": 0.05,
+    "car": 0.04,
+    "bus": 0.02
   },
-  "scooter_batt_decay_pct_per_m": 0.005,
+  "scooter_batt_decay_pct_per_m": 0.05,
 
   "initial_earnings": 100,
   "energy_pct_max": 100,
