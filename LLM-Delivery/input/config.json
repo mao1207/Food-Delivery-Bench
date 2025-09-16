@@ -7,26 +7,26 @@
     "bus": 1000
   },
   "energy_pct_decay_per_m_by_mode": {
-    "walk": 0.1,
-    "drag_scooter": 0.12,
-    "e-scooter": 0.05,
-    "car": 0.04,
-    "bus": 0.02
+    "walk": 0.08,
+    "drag_scooter": 0.1,
+    "e-scooter": 0.01,
+    "car": 0.008,
+    "bus": 0.006
   },
-  "scooter_batt_decay_pct_per_m": 0.05,
+  "scooter_batt_decay_pct_per_m": 0.02,
 
   "initial_earnings": 100,
   "energy_pct_max": 100,
-  "rest_rate_pct_per_min": 8,
+  "rest_rate_pct_per_min": 0.8,
   "low_energy_threshold_pct": 30,
   "hospital_duration_s": 1200,
   "hospital_rescue_fee": 20.0,
 
-  "charge_price_per_percent": 0.005,
+  "charge_price_per_percent": 0.05,
 
   "escooter_defaults": {
     "initial_battery_pct": 50,
-    "charge_rate_pct_per_min": 3
+    "charge_rate_pct_per_min": 1
   },
 
   "rent_car_defaults": {
@@ -73,7 +73,8 @@
   "lifecycle": {
     "duration_hours": 0.5,
     "export_path": "../../results",
-    "realtime_stop_hours": 0.5
+    "realtime_stop_hours": 1,
+    "vlm_call_limit": 80
   },
 
   "agent_count": 8,

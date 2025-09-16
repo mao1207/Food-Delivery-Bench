@@ -189,7 +189,7 @@ class Bus:
                 current_stop = self.route.stops[station_index]
                 distance_to_stop = math.hypot(self.x - current_stop.x, self.y - current_stop.y)
 
-                if distance_to_stop <= 300.0:  # 300cm = 3m 到达阈值
+                if distance_to_stop <= 1000.0:  # 1000cm = 10m 到达阈值
                     self._arrive_at_stop(station_index)
 
     def _arrive_at_stop(self, stop_index: int):

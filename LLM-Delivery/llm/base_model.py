@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 from openai import OpenAI
 from Base.Prompt import get_system_prompt
+from utils.global_logger import get_vlm_logger
 
 
 class BaseModel:
@@ -34,6 +35,7 @@ class BaseModel:
         self.temperature = temperature
         self.top_p = top_p
         self.rate_limit_per_min = rate_limit_per_min
+        self.logger = get_vlm_logger()
 
         # 自动判断是否支持视觉；也可在 __init__ 里手动传 supports_vision 覆盖
         # if supports_vision is None:
@@ -124,7 +126,7 @@ class BaseModel:
                 # print(resp)
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:
-                print(f"[BaseModel] generate attempt {i} failed: {e}")
+                self.logger.error(f"[BaseModel] generate attempt {i} failed: {e}")
 
         raise RuntimeError(f"VLM generate failed after {retry} tries: {last_err}")
 

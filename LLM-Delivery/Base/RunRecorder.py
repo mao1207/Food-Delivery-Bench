@@ -69,12 +69,15 @@ class RunRecorder:
     # 内部时钟与累积
     started_sim_s: Optional[float] = None
     ended_sim_s:   Optional[float] = None
-    active_elapsed_s: float = 0.0  # 仅在“未暂停”时累加（由外部驱动）
+    active_elapsed_s: float = 0.0  # 仅在"未暂停"时累加（由外部驱动）
     done: bool = False
     
     # 现实时间停止支持
     realtime_stop_hours: float = 0.0
     realtime_start_ts: Optional[float] = None
+    
+    # VLM call 次数限制
+    vlm_call_limit: int = 0
 
     # 订单/活动统计（导出时也会从 dm.completed_orders 再扫一遍补全）
     # 这里保持轻量，避免和主逻辑重叠
@@ -119,7 +122,10 @@ class RunRecorder:
             elapsed_realtime_hours = (current_realtime - self.realtime_start_ts) / 3600.0
             realtime_end = elapsed_realtime_hours >= self.realtime_stop_hours
         
-        return sim_time_end or realtime_end
+        # 检查 VLM call 次数限制
+        vlm_call_end = (self.vlm_call_limit > 0) and (self.counters.vlm_calls >= self.vlm_call_limit)
+        
+        return sim_time_end or realtime_end or vlm_call_end
 
     def mark_end(self, now_sim: float):
         self.ended_sim_s = float(now_sim)

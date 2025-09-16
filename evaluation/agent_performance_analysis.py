@@ -444,11 +444,11 @@ This report analyzes the performance of {len(df)} AI agents in a food delivery s
         
         return df
 
-def main():
+def main(path):
     """Main function to run the analysis."""
-    analyzer = AgentPerformanceAnalyzer()
+    analyzer = AgentPerformanceAnalyzer(results_dir=path)
     results_df = analyzer.run_analysis()
     return results_df
 
 if __name__ == "__main__":
-    results = main()
+    results = main(path="results/20250915_184732")

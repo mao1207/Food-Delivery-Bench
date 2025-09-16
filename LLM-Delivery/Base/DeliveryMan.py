@@ -25,61 +25,11 @@ from Base.ActionSpace import ACTION_API_SPEC, parse_action as parse_vlm_action, 
 from Base.RunRecorder import RunRecorder
 from Base.BusManager import BusManager
 from utils.util import _ensure_png_bytes
+from utils.global_logger import get_agent_logger
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from llm.base_model import BaseModel
-
-# ===== Shared Logger Configuration =====
-def setup_delivery_logger(log_folder: str = "../../log", 
-                         file_log_level: int = logging.DEBUG, 
-                         console_log_level: int = logging.INFO):
-    """
-    设置所有delivery agents的共享logger，将日志存储到文件
-    
-    Args:
-        log_folder: 日志文件夹路径
-        file_log_level: 文件日志级别（所有级别都会输出到文件）
-        console_log_level: 控制台日志级别（只有指定级别及以上才会输出到控制台）
-    """
-    os.makedirs(log_folder, exist_ok=True)
-    log_file = os.path.join(log_folder, f'delivery_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
-    
-    # 创建logger
-    logger = logging.getLogger('delivery_agents')
-    # 设置logger级别为最低级别，让所有消息都能通过
-    logger.setLevel(logging.DEBUG)
-    
-    # 清除现有的handlers，避免重复
-    logger.handlers.clear()
-    
-    # 创建文件处理器 - 输出所有级别的日志
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(file_log_level)  # 文件记录所有级别
-    
-    # 创建控制台处理器 - 只输出指定级别及以上的日志
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(console_log_level)  # 控制台只显示指定级别
-    
-    # 创建格式化器
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    
-    # 设置处理器格式
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
-    
-    # 添加处理器到logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-    
-    return logger
-
-# 初始化共享logger - 可以根据需要调整控制台级别
-_shared_logger = setup_delivery_logger(console_log_level=logging.INFO)
-
 
 # ===== Transport Modes =====
 class TransportMode(str, Enum):
@@ -290,8 +240,9 @@ class DeliveryMan:
 
 
     def __post_init__(self):
-        self.logger = _shared_logger.getChild(f"DeliveryMan{self.agent_id}")
-                
+        # 使用全局logger
+        self.logger = get_agent_logger(f"DeliveryMan{self.agent_id}")
+        
         self.avg_speed_by_mode = {
             TransportMode.WALK:      self.cfg["avg_speed_cm_s"]["walk"],
             TransportMode.SCOOTER:   self.cfg["avg_speed_cm_s"]["e-scooter"],
@@ -334,6 +285,7 @@ class DeliveryMan:
             self.e_scooter = EScooter()
             self.e_scooter.battery_pct = es_cfg["initial_battery_pct"]
             self.e_scooter.charge_rate_pct_per_min = es_cfg["charge_rate_pct_per_min"]
+            self.e_scooter.avg_speed_cm_s = self.cfg["avg_speed_cm_s"]["e-scooter"]
 
         setattr(self.e_scooter, "owner_id", str(self.agent_id))
         # NEW: 兼容性补丁——确保存有 with_owner 标志
@@ -396,6 +348,9 @@ class DeliveryMan:
         self._realtime_start_ts = time.time()
         self._realtime_stop_hours = float(life_cfg.get("realtime_stop_hours", 0.0))
         
+        # --- VLM call limit ---
+        vlm_call_limit = int(life_cfg.get("vlm_call_limit", 0))
+        
         self._recorder = RunRecorder(
             agent_id=str(self.agent_id),
             lifecycle_s=float(life_s if life_s > 0 else 0.0),
@@ -403,6 +358,7 @@ class DeliveryMan:
             initial_balance=float(self.earnings_total),
             realtime_stop_hours=self._realtime_stop_hours,
             realtime_start_ts=self._realtime_start_ts,
+            vlm_call_limit=vlm_call_limit,
         )
         self._recorder.start(self.clock.now_sim(), self._realtime_start_ts)
 
@@ -1843,19 +1799,23 @@ class DeliveryMan:
         dxy = self._xy_of_node(getattr(order_obj, "dropoff_node", None))
         at_dropoff = dxy and self._is_at_xy(dxy[0], dxy[1], tol_cm=tol)
 
-        # 检查是否在 handoff_address 位置（仅当允许 hand_to_customer 时）
+        # 检查是否在 handoff_address 位置
         at_handoff = False
-        if is_handoff_allowed and handoff_address:
+        if handoff_address:
             hx, hy = float(handoff_address.x), float(handoff_address.y)
             at_handoff = self._is_at_xy(hx, hy, tol_cm=tol)
 
-        # 必须在其中一个有效位置
-        if not (at_dropoff or at_handoff):
-            if is_handoff_allowed and handoff_address:
-                self.vlm_add_error("drop_off failed: not at the drop-off location or handoff address")
-            else:
+        # 根据交付方式检查位置要求
+        if method == 'hand_to_customer':
+            # hand_to_customer 必须在 handoff_address 位置
+            if not at_handoff:
+                self.vlm_add_error("drop_off failed: hand_to_customer delivery must be near the customer. You are not close to the customer.")
+                self._finish_action(success=False); return
+        else:
+            # 其他交付方式可以在 dropoff_node 位置
+            if not at_dropoff:
                 self.vlm_add_error("drop_off failed: not at the drop-off location")
-            self._finish_action(success=False); return
+                self._finish_action(success=False); return
 
         # 4) 记录交付方式（后续结算可用，但当前不改变 compute_settlement）
         try:
@@ -3337,16 +3297,37 @@ class DeliveryMan:
                     current_realtime = time.time()
                     elapsed_realtime_hours = (current_realtime - rec.realtime_start_ts) / 3600.0
                     realtime_end = elapsed_realtime_hours >= rec.realtime_stop_hours
+                # 检查 VLM call 次数限制
+                vlm_call_end = (rec.vlm_call_limit > 0) and (rec.counters.vlm_calls >= rec.vlm_call_limit)
                 
-                if sim_time_end and realtime_end:
+                if sim_time_end and realtime_end and vlm_call_end:
+                    stop_reason = "all_limits_reached"
+                    stop_message = f"All limits reached: simulation time ({rec.active_elapsed_s/3600:.2f}h), real time ({elapsed_realtime_hours:.2f}h), and VLM calls ({rec.counters.vlm_calls}). Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
+                elif sim_time_end and realtime_end:
                     stop_reason = "both_times_reached"
                     stop_message = f"Both simulation time ({rec.active_elapsed_s/3600:.2f}h) and real time ({elapsed_realtime_hours:.2f}h) reached. Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
+                elif sim_time_end and vlm_call_end:
+                    stop_reason = "sim_time_and_vlm_reached"
+                    stop_message = f"Simulation time ({rec.active_elapsed_s/3600:.2f}h) and VLM calls ({rec.counters.vlm_calls}) reached. Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
+                elif realtime_end and vlm_call_end:
+                    stop_reason = "realtime_and_vlm_reached"
+                    stop_message = f"Real time ({elapsed_realtime_hours:.2f}h) and VLM calls ({rec.counters.vlm_calls}) reached. Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
                 elif sim_time_end:
                     stop_reason = "sim_time_reached"
                     stop_message = f"Simulation time reached ({rec.active_elapsed_s/3600:.2f}h). Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
                 elif realtime_end:
                     stop_reason = "realtime_reached"
                     stop_message = f"Real time reached ({elapsed_realtime_hours:.2f}h). Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
+                elif vlm_call_end:
+                    stop_reason = "vlm_call_limit_reached"
+                    stop_message = f"VLM call limit reached ({rec.counters.vlm_calls}). Stopping this run."
+                    self.logger.info("Agent " + self.agent_id + ": " + stop_message)
                 
                 rec.mark_end(now_sim=now)
                 # 先收口持续计时会话，避免漏账/爆量
@@ -3644,7 +3625,7 @@ class DeliveryMan:
             return
 
         # 检查bus是否在当前车站且为stopped状态
-        if not bus.is_at_stop() or math.hypot(bus.x - self.x, bus.y - self.y) > 300.0:
+        if not bus.is_at_stop() or math.hypot(bus.x - self.x, bus.y - self.y) > 1000.0:
             self.vlm_add_error(f"board_bus failed: bus {bus_id} not at stop")
             self._finish_action(success=False)
             # print(f"board_bus failed: bus {bus_id} not at stop")
