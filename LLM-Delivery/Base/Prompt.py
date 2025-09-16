@@ -598,6 +598,7 @@ SYSTEM_PROMPT = """You are a food-delivery courier in a simulated city. Your pri
    - You can also RENT_CAR at car_rental and RETURN_CAR there. Driving speed is 12 m/s and consumes 0.04% energy per meter. It also costs $1 per minute.
    - There is a bus transportation system in the city. You can VIEW_BUS_SCHEDULE to see the bus schedule and BOARD_BUS at bus_stop to go to any bus stop with $1. Bus speed is 10 m/s and consumes 0.02% energy per meter.
 - POST_HELP with explicit payload and coordinates when you need help for pickups, deliveries, purchases, or charging. You can ACCEPT_HELP to assist others. For HELP_DELIVERY or HELP_CHARGE requests *you post*, you must PLACE_TEMP_BOX with your items/vehicle at provide_xy and let others TAKE_FROM_TEMP_BOX from there. After completing a helper task, you should REPORT_HELP_FINISHED.
+- Use SAY to communicate with other if necessary. You can SAY to all agents with SAY(text="...", to="ALL"), or SAY to a specific agent with SAY(text="...", to="agent_id").
 - WAIT for food preparation or charging to complete if you don't plan to do anything else. WAIT should be your last choice.
 
 **Observation:**

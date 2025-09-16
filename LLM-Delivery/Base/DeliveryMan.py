@@ -3096,6 +3096,9 @@ class DeliveryMan:
             breakdown=settle_res.breakdown,
             pickup=getattr(order, "pickup_road_name", ""),
             dropoff=getattr(order, "dropoff_road_name", ""),
+            # 新增：记录允许的配送方式以及实际选择的方式
+            allowed_delivery_methods=list(getattr(order, "allowed_delivery_methods", []) or []),
+            delivery_method=getattr(order, "delivery_method", None),
             stars=dict(
                 overall=int(settle_res.stars),
                 time=_time_star,
@@ -3313,6 +3316,11 @@ class DeliveryMan:
             if not self._timers_paused:
                 delta = max(0.0, now - self._life_last_tick_sim)
                 rec.tick_active(delta)
+                # 按当前交通方式累计活跃时间
+                try:
+                    rec.tick_transport(getattr(self.mode, "value", str(self.mode)), delta)
+                except Exception:
+                    pass
                 self._life_last_tick_sim = now
 
             # 到点立即停止（只触发一次），并导出报告

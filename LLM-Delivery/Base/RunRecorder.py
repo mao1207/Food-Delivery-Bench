@@ -80,6 +80,8 @@ class RunRecorder:
     # 这里保持轻量，避免和主逻辑重叠
     counters: Counters = field(default_factory=Counters)
     money: MoneyFlow   = field(default_factory=MoneyFlow)
+    # 交通方式累计时长（仅在未暂停时累加，单位：秒）
+    transport_time_s: Dict[str, float] = field(default_factory=dict)
 
     # ===== 内部会话累加器（仅内存，不直接写 details）=====
     _charging_acc: Optional[Dict[str, Any]] = field(default=None, repr=False)
@@ -95,6 +97,13 @@ class RunRecorder:
     def tick_active(self, delta_s: float):
         if delta_s > 0:
             self.active_elapsed_s += float(delta_s)
+
+    def tick_transport(self, mode: str, delta_s: float):
+        """按交通方式累计活跃时间（秒）。"""
+        if delta_s <= 0:
+            return
+        key = str(mode)
+        self.transport_time_s[key] = float(self.transport_time_s.get(key, 0.0) + float(delta_s))
 
     def should_end(self) -> bool:
         if self.done:
@@ -259,6 +268,7 @@ class RunRecorder:
         temp_ok_cnt = odor_ok_cnt = dmg_ok_cnt = 0
         method_success_cnt = 0
         total_order_time_s = 0.0
+        food_star_sum = 0.0
 
         order_details: List[Dict[str, Any]] = []
         for r in completed:
@@ -271,6 +281,7 @@ class RunRecorder:
             if flags.get("damage_ok_all", True):dmg_ok_cnt  += 1
             stars = dict(r.get("stars") or {})
             if int(stars.get("method", 0)) >= 5: method_success_cnt += 1
+            food_star_sum += float(stars.get("food", 0) or 0)
 
             order_details.append(dict(
                 id=r.get("id"),
@@ -290,6 +301,8 @@ class RunRecorder:
                 paid_total=float(r.get("paid_total", 0.0)),
                 pickup=r.get("pickup",""),
                 dropoff=r.get("dropoff",""),
+                allowed_delivery_methods=list(r.get("allowed_delivery_methods", []) or []),
+                delivery_method=r.get("delivery_method", None),
             ))
 
         # 费用合计
@@ -438,6 +451,7 @@ class RunRecorder:
                 completed_count=n_done,
                 timeout_count=late_cnt,
                 avg_stars=stars_avg,
+                avg_food_stars=_safe_div(food_star_sum, max(n_done,1)),
                 temp_ok_rate=_safe_div(temp_ok_cnt, max(n_done,1)),
                 odor_ok_rate=_safe_div(odor_ok_cnt, max(n_done,1)),
                 damage_ok_rate=_safe_div(dmg_ok_cnt, max(n_done,1)),
@@ -449,7 +463,9 @@ class RunRecorder:
             activity=dict(
                 active_time_ratio=active_time_ratio,
                 orders_per_hour=orders_per_hour,
-                avg_order_time_s=avg_order_time_s
+                avg_order_time_s=avg_order_time_s,
+                mode_time_s=dict(self.transport_time_s or {}),
+                mode_time_ratio={k: _safe_div(v, max(self.active_elapsed_s, 1e-9)) for k, v in (self.transport_time_s or {}).items()}
             ),
             interruptions=dict(
                 scooter_depleted=int(self.counters.scooter_depleted),

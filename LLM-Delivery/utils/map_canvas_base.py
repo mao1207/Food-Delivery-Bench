@@ -579,7 +579,7 @@ class MapCanvasBase(QMainWindow):
 
             ti = pg.TextItem(text=label, color="#000000", anchor=(0.5,0.5))
             px_use = size_px if size_px is not None else 12
-            ti.setFont(self._label_font); ti.setPos(px_, py_); ti.setZValue(11)
+            ti.setFont(self._make_font(px_use, bold=True, export=export)); ti.setPos(px_, py_); ti.setZValue(11)
             pw.addItem(ti)
 
     # ---------- 辅助线（窗口用；导出不调用） ----------

@@ -23,7 +23,7 @@ class BaseModel:
         model: str = "gpt-4o-mini",
         *,
         max_tokens: int = 512,
-        temperature: float = 0.2,
+        temperature: float = 0.0,
         top_p: float = 1.0,
         rate_limit_per_min: Optional[int] = 20,
         supports_vision: Optional[bool] = None,
