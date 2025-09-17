@@ -36,7 +36,7 @@ def main():
     nodes = _load_world_nodes(WORLD_JSON)
 
     # Clock
-    clock = VirtualClock(time_scale=5.0)  # 3倍时间加速
+    clock = VirtualClock(time_scale=3.0)  # 3倍时间加速
 
     # --- 公交系统初始化 ---
     bus_manager = BusManager(clock=clock)

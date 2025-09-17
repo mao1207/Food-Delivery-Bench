@@ -54,6 +54,11 @@ class Bus:
     # 时间控制
     stop_start_time: float = 0.0
     last_update_time: float = 0.0
+    
+    # 新增：基于时间的移动控制
+    departure_time: float = 0.0     # 出发时间
+    arrival_time: float = 0.0       # 预计到达时间
+    target_stop_index: int = -1     # 正在前往的站点索引
 
     # 乘客
     passengers: List[str] = field(default_factory=list)  # 乘客ID列表
@@ -83,13 +88,12 @@ class Bus:
     def update(self):
         """更新公交状态和位置"""
         now = self.clock.now_sim()
-        dt = now - self.last_update_time
         self.last_update_time = now
 
         if self.state == BusState.STOPPED:
             self._update_stopped(now)
         elif self.state == BusState.MOVING:
-            self._update_moving(dt)
+            self._update_moving_time_based(now)
 
     def _update_stopped(self, now: float):
         """处理停靠状态"""
@@ -103,94 +107,90 @@ class Bus:
             # 停靠时间到，准备出发
             self._depart_from_stop()
 
-    def _update_moving(self, dt: float):
-        """处理行驶状态"""
-        if not self.route.path_points:
-            return
-
-        # 计算移动距离
-        distance_cm = self.route.speed_cm_s * dt
-
-        # 沿路径移动
-        remaining_distance = distance_cm
-        while remaining_distance > 0 and self.current_path_index < len(self.route.path_points) - 1:
-            current_point = self.route.path_points[self.current_path_index]
-            next_point = self.route.path_points[self.current_path_index + 1]
-
-            # 计算到下一个点的距离
-            dx = next_point[0] - current_point[0]
-            dy = next_point[1] - current_point[1]
-            segment_distance = math.hypot(dx, dy)
-
-            if segment_distance == 0:  # 避免除零错误
-                self.current_path_index += 1
-                self.progress_to_next = 0.0
-                continue
-
-            if remaining_distance >= segment_distance * (1 - self.progress_to_next):
-                # 够到达下一个点
-                remaining_distance -= segment_distance * (1 - self.progress_to_next)
-                self.current_path_index += 1
-                self.progress_to_next = 0.0
-            else:
-                # 在当前段上前进
-                self.progress_to_next += remaining_distance / segment_distance
-                remaining_distance = 0.0
-
-        if self.current_path_index >= len(self.route.path_points) - 1:
-            # print(f"Bus {self.id} reached the end of the line and is returning.")
-
-            # 反转站点和路径点列表
-            self.route.stops.reverse()
-            self.route.path_points.reverse()
-            self.route.direction *= -1
-
-            # 重置状态以从新的起点开始
-            self.current_path_index = 0
-            self.current_stop_index = -1
-            self.progress_to_next = 0.0
-
-        # 更新当前位置
-        self._update_position()
-
-        # 检查是否到达下一个站点
-        self._check_arrival_at_stop()
-
-    def _update_position(self):
-        """根据路径进度更新位置"""
-        if not self.route.path_points or self.current_path_index >= len(self.route.path_points):
-            return
-
-        if self.current_path_index < len(self.route.path_points) - 1:
-            # 在两个路径点之间插值
-            current_point = self.route.path_points[self.current_path_index]
-            next_point = self.route.path_points[self.current_path_index + 1]
-
-            self.x = current_point[0] + (next_point[0] - current_point[0]) * self.progress_to_next
-            self.y = current_point[1] + (next_point[1] - current_point[1]) * self.progress_to_next
-        else:
-            # 在最后一个路径点
-            last_point = self.route.path_points[-1]
-            self.x = last_point[0]
-            self.y = last_point[1]
-
-    def _check_arrival_at_stop(self):
-        """检查是否到达站点"""
+    def _update_moving_time_based(self, now: float):
+        """基于时间的移动处理"""
         if not self.route.stops:
             return
 
-        # 由于路径点是交错的（path[0], station0, path[1], station1, ...）
-        # 站点在路径点中的索引是：1, 3, 5, ... (奇数位置)
-        # 检查当前是否在站点对应的路径点位置
-        if self.current_path_index % 2 == 1 and self.current_stop_index * 2 + 1 != self.current_path_index:  # 奇数位置是站点
-            station_index = self.current_path_index // 2
-            if station_index < len(self.route.stops):
-                # 检查是否到达这个站点
-                current_stop = self.route.stops[station_index]
-                distance_to_stop = math.hypot(self.x - current_stop.x, self.y - current_stop.y)
+        # 检查是否到达目标站点
+        if now >= self.arrival_time and self.target_stop_index >= 0:
+            self._arrive_at_stop(self.target_stop_index)
+            return
 
-                if distance_to_stop <= 1000.0:  # 1000cm = 10m 到达阈值
-                    self._arrive_at_stop(station_index)
+        # 如果还没有设置目标站点，设置下一个站点为目标
+        if self.target_stop_index < 0:
+            next_stop_index = self.current_stop_index + 1
+            if next_stop_index < len(self.route.stops):
+                self._set_target_stop(next_stop_index, now)
+            else:
+                # 到达路线终点，准备掉头
+                self._reverse_route()
+                if self.route.stops:
+                    self._set_target_stop(0, now)
+
+    def _set_target_stop(self, stop_index: int, now: float):
+        """设置目标站点并计算到达时间"""
+        if stop_index >= len(self.route.stops):
+            return
+
+        self.target_stop_index = stop_index
+        target_stop = self.route.stops[stop_index]
+        
+        # 计算通过路径点到目标站点的实际距离
+        distance_cm = self._calculate_path_distance_to_stop(stop_index)
+        
+        # 计算所需时间
+        if self.route.speed_cm_s > 0:
+            travel_time = distance_cm / self.route.speed_cm_s
+        else:
+            travel_time = 0.0
+        
+        # 设置出发和到达时间
+        self.departure_time = now
+        self.arrival_time = now + travel_time
+
+    def _calculate_path_distance_to_stop(self, stop_index: int) -> float:
+        """计算通过路径点到目标站点的实际距离"""
+        if not self.route.path_points or stop_index >= len(self.route.stops):
+            return 0.0
+
+        total_distance = 0.0
+        
+        # 从当前位置开始计算
+        current_x, current_y = self.x, self.y
+        
+        # 找到目标站点在路径点中的索引
+        # 路径点结构：path[0], station0, path[1], station1, ...
+        # 站点在路径点中的索引是：1, 3, 5, ... (奇数位置)
+        target_path_index = stop_index * 2 + 1
+        
+        # 如果目标路径索引超出范围，使用最后一个路径点
+        if target_path_index >= len(self.route.path_points):
+            target_path_index = len(self.route.path_points) - 1
+        
+        # 从当前位置到目标路径点的距离
+        for i in range(self.current_path_index, target_path_index + 1):
+            if i < len(self.route.path_points):
+                next_point = self.route.path_points[i]
+                segment_distance = math.hypot(next_point[0] - current_x, next_point[1] - current_y)
+                total_distance += segment_distance
+                current_x, current_y = next_point[0], next_point[1]
+        
+        return total_distance
+
+    def _reverse_route(self):
+        """反转路线方向"""
+        # 反转站点和路径点列表
+        self.route.stops.reverse()
+        self.route.path_points.reverse()
+        self.route.direction *= -1
+
+        # 重置状态以从新的起点开始
+        self.current_path_index = 0
+        self.current_stop_index = -1
+        self.progress_to_next = 0.0
+        self.target_stop_index = -1
+
 
     def _arrive_at_stop(self, stop_index: int):
         """到达站点"""
@@ -198,10 +198,15 @@ class Bus:
         self.state = BusState.STOPPED
         self.stop_start_time = self.clock.now_sim()
 
-        # 精确停在站点位置
+        # 瞬移到站点位置
         stop = self.route.stops[stop_index]
         self.x = stop.x
         self.y = stop.y
+
+        # 重置目标站点
+        self.target_stop_index = -1
+        self.departure_time = 0.0
+        self.arrival_time = 0.0
 
         # 确保路径点索引指向正确的站点位置（奇数位置）
         expected_path_index = stop_index * 2 + 1
@@ -213,21 +218,27 @@ class Bus:
     def _depart_from_stop(self):
         """从站点出发"""
         self.state = BusState.MOVING
-
-        # 从当前站点出发，移动到下一个路径点
-        # 当前在站点（奇数位置），下一个是路径点（偶数位置）
-        if self.current_path_index < len(self.route.path_points) - 1:
-            # self.current_path_index += 1
-            self.progress_to_next = 0.0
+        
+        # 设置下一个站点为目标
+        next_stop_index = self.current_stop_index + 1
+        if next_stop_index < len(self.route.stops):
+            self._set_target_stop(next_stop_index, self.clock.now_sim())
+        else:
+            # 到达路线终点，准备掉头
+            self._reverse_route()
+            if self.route.stops:
+                self._set_target_stop(0, self.clock.now_sim())
 
         # print(f"Bus {self.id} departed from stop {self.route.stops[self.current_stop_index].name or self.route.stops[self.current_stop_index].id}")
 
     def get_next_stop(self) -> Optional[BusStop]:
         """获取下一个站点"""
-        if not self.route.stops or self.current_stop_index + 1 >= len(self.route.stops):
+        if self.state == BusState.MOVING and self.target_stop_index >= 0:
+            return self.route.stops[self.target_stop_index]
+        elif not self.route.stops or self.current_stop_index + 1 >= len(self.route.stops):
             return None
-
-        return self.route.stops[self.current_stop_index + 1]
+        else:
+            return self.route.stops[self.current_stop_index + 1]
 
     def get_current_stop(self) -> Optional[BusStop]:
         """获取当前站点"""
@@ -259,7 +270,12 @@ class Bus:
 
     def _calculate_time_to_next_stop(self) -> Optional[float]:
         """计算到达下一站的时间（秒）"""
-        if not self.route.stops or self.state != BusState.MOVING:
+        if self.state == BusState.MOVING and self.target_stop_index >= 0:
+            # 使用预计算的到达时间
+            now = self.clock.now_sim()
+            remaining_time = self.arrival_time - now
+            return max(0.0, remaining_time)
+        elif not self.route.stops or self.state != BusState.MOVING:
             return None
 
         next_stop = self.get_next_stop()
@@ -321,6 +337,6 @@ class Bus:
             status_parts.append(f"state: {self.state.value}")
 
         # status_parts.append(f"passengers: {len(self.passengers)}")
-        status_parts.append(f"pos: ({self.x/100:.1f}m, {self.y/100:.1f}m)")
+        # status_parts.append(f"pos: ({self.x/100:.1f}m, {self.y/100:.1f}m)")
 
         return " | ".join(status_parts)

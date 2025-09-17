@@ -1812,8 +1812,8 @@ class DeliveryMan:
                 self.vlm_add_error("drop_off failed: hand_to_customer delivery must be near the customer. You are not close to the customer.")
                 self._finish_action(success=False); return
         else:
-            # 其他交付方式可以在 dropoff_node 位置
-            if not at_dropoff:
+            # 其他交付方式可以在 dropoff_node 位置或 handoff_address 位置
+            if not at_dropoff and not at_handoff:
                 self.vlm_add_error("drop_off failed: not at the drop-off location")
                 self._finish_action(success=False); return
 

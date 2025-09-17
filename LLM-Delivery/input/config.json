@@ -71,9 +71,9 @@
   },
   "settlement": {},
   "lifecycle": {
-    "duration_hours": 0.5,
+    "duration_hours": 0.1,
     "export_path": "../../results",
-    "realtime_stop_hours": 1,
+    "realtime_stop_hours": 10,
     "vlm_call_limit": 80
   },
 
