@@ -3050,7 +3050,7 @@ class DeliveryMan:
             id=oid,
             duration_s=duration_s,
             rating=float(settle_res.stars),
-            earnings=base_earn,
+            earnings=float(settle_res.base_pay),
             bonus_extra=float(settle_res.extra_pay),
             paid_total=float(settle_res.total_pay),
             breakdown=settle_res.breakdown,

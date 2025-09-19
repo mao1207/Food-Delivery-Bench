@@ -14,5 +14,3 @@ LLM-Delivery is a benchmark implemented based on SimWorld siulator.
     - No output low level function calling
     - Only input the description of the current state in text
     - Only output the description of the high level activity
-
-

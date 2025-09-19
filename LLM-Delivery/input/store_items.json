@@ -2,13 +2,13 @@
   {
     "id": "energy_drink",
     "name": "Energy Drink",
-    "price": 5.0,
-    "function": "Instantly restores all your personal energy."
+    "price": 6.0,
+    "function": "Instantly restores half of your personal energy."
   },
   {
     "id": "escooter_battery_pack",
     "name": "EScooter Battery Pack",
-    "price": 8.0,
+    "price": 10.0,
     "function": "Instantly fully recharges your e-scooter battery, but you must be near the scooter."
   },
   {

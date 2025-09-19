@@ -74,7 +74,7 @@
     "duration_hours": 2,
     "export_path": "../../results",
     "realtime_stop_hours": 2,
-    "vlm_call_limit": 250
+    "vlm_call_limit": 200
   },
 
   "agent_count": 8,
