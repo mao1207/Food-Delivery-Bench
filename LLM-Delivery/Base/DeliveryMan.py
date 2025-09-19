@@ -2474,8 +2474,10 @@ class DeliveryMan:
                         self._finish_action(success=False); return
                     try:
                         sc.unpark()
+                        self._charge_ctx = None
                     except Exception:
                         sc.park_xy = None
+                        self._charge_ctx = None
                 self.set_mode(TransportMode.DRAG_SCOOTER)
                 self._log("switch -> DRAG_SCOOTER (assisting)")
                 self._finish_action(success=True); return
@@ -2517,8 +2519,10 @@ class DeliveryMan:
                         self._finish_action(success=False); return
                     try:
                         sc.unpark()
+                        self._charge_ctx = None
                     except Exception:
                         sc.park_xy = None
+                        self._charge_ctx = None
                 self.set_mode(TransportMode.DRAG_SCOOTER)
                 self._log("switch -> DRAG_SCOOTER (assist scooter cannot be ridden)")
                 self._finish_action(success=True); return
@@ -2533,8 +2537,10 @@ class DeliveryMan:
                     self._finish_action(success=False); return
                 try:
                     self.e_scooter.unpark()
+                    self._charge_ctx = None
                 except Exception:
                     self.e_scooter.park_xy = None
+                    self._charge_ctx = None
 
             if self.e_scooter.state == ScooterState.DEPLETED:
                 self.set_mode(TransportMode.DRAG_SCOOTER)
