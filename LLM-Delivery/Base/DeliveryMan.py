@@ -863,14 +863,27 @@ class DeliveryMan:
         if not self.e_scooter: return None
         return float(self.e_scooter.battery_pct) / max(1e-9, self.scooter_batt_decay_pct_per_m)
 
+    def _fmt_time(self, sim_seconds: float) -> str:
+        """格式化虚拟时间为可读格式"""
+        hours = int(sim_seconds // 3600)
+        minutes = int((sim_seconds % 3600) // 60)
+        seconds = int(sim_seconds % 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
     def _agent_state_text(self) -> str:
         active_ids = [getattr(o, "id", None) for o in self.active_orders if getattr(o, "id", None) is not None]
         help_ids   = list(getattr(self, "help_orders", {}).keys())
         carrying_ids = list(self.carrying)
         mode_str = "towing a scooter" if self.towing_scooter else self.mode.value
         speed_ms = self.speed_cm_s / 100
+        
+        # 获取当前虚拟时间
+        current_time = self.clock.now_sim()
+        time_str = self._fmt_time(current_time)
+        
         lines = []
         lines.append(f"You are Agent {self.agent_id}. There are {self.cfg.get('agent_count', 0)} delivery agents in total in this city.")
+        # lines.append(f"Current time is {time_str} (day {int(current_time // 86400) + 1}).")
         lines.append(f"Your current transport mode is {mode_str}, at {self._fmt_xy_m(self.x, self.y)}.")
         lines.append(f"Your speed is ~{speed_ms:.1f} m/s, energy is {self.energy_pct:.0f}%.")
         pace_map = {"accel":"accelerating", "normal":"normal", "decel":"decelerating"}
@@ -894,7 +907,8 @@ class DeliveryMan:
                 lines.append(f"Scooter: {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range {rng_m:.1f} m,")
             else:
                 lines.append(f"Scooter: {self.e_scooter.state.value}, batt {self.e_scooter.battery_pct:.0f}%, range N/A,")
-            lines.append(f"charge rate {self.e_scooter.charge_rate_pct_per_min:.1f}%/min, {park_str}.")
+            lines.append(f"{park_str}.")
+            
         
         if self._charge_ctx:
             ctx = self._charge_ctx
@@ -907,6 +921,7 @@ class DeliveryMan:
                 lines.append(
                     f"Charging in progress ({'assist' if which=='assist' else 'own'}): {cur:.0f}% → {pt:.0f}% at {spot}."
                 )
+                lines.append(f"Charge rate is {self.e_scooter.charge_rate_pct_per_min:.1f}%/min.")
 
         # --- assisting (foreign) scooter 展示 ---
         if self.assist_scooter:
@@ -1091,7 +1106,7 @@ class DeliveryMan:
             for label, s in (("assist", self.assist_scooter), ("own", self.e_scooter)):
                 if s is not None and getattr(s, "park_xy", None) and self._is_at_xy(s.park_xy[0], s.park_xy[1], tol_cm=tol):
                     # 根据是哪辆车给出对应的 Switch 提示
-                    parked_here_cmd = 'Switch(to="assist_scooter")' if label == "assist" else 'Switch(to="escooter")'
+                    parked_here_cmd = 'Switch(to="assist_scooter")' if label == "assist" else 'Switch(to="e-scooter")'
                     break
 
             # 组装提示
@@ -1109,7 +1124,7 @@ class DeliveryMan:
                     )
 
             if parked_here_cmd:
-                hints.append(f"You have a parked scooter here. You MUST MUST MUST now {parked_here_cmd} to retrieve it.")
+                hints.append(f"There is a parked scooter here. You can use {parked_here_cmd} to get it.")
 
             if hints:
                 self.vlm_ephemeral["charging_hint"] = " ".join(hints)
@@ -1879,7 +1894,7 @@ class DeliveryMan:
 
     def _handle_charge_escooter(self, _self, act: DMAction, _allow_interrupt: bool):
         if self._charge_ctx is not None:
-            self.vlm_add_error("charge failed: already charging; don't charge again"); self._finish_action(success=False); return
+            self.vlm_add_error("charge failed: already charged; don't charge again"); self._finish_action(success=False); return
 
         station_xy = self._nearest_poi_xy("charging_station", tol_cm=self._tol("nearby"))
         if station_xy is None:
