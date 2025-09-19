@@ -1879,7 +1879,7 @@ class DeliveryMan:
 
     def _handle_charge_escooter(self, _self, act: DMAction, _allow_interrupt: bool):
         if self._charge_ctx is not None:
-            self.vlm_add_error("charge failed: already charging"); self._finish_action(success=False); return
+            self.vlm_add_error("charge failed: already charging; don't charge again"); self._finish_action(success=False); return
 
         station_xy = self._nearest_poi_xy("charging_station", tol_cm=self._tol("nearby"))
         if station_xy is None:
@@ -2507,7 +2507,7 @@ class DeliveryMan:
             self._finish_action(success=True); return
 
         # --- 电瓶车（骑行）。若有 assist 车，允许调用但强制降级为拖拽 ---
-        if to in ("e-scooter", "scooter", TransportMode.SCOOTER.value):
+        if to in ("e-scooter", "scooter", "escooter", TransportMode.SCOOTER.value):
             if self.assist_scooter is not None:
                 sc = self.assist_scooter
                 if sc.park_xy:
