@@ -822,6 +822,53 @@ class DeliveryMan:
         tol_cm = float(tol_cm) if tol_cm is not None else self._tol("nearby")
         return math.hypot(self.x - x, self.y - y) <= float(tol_cm)
 
+    def _is_valid_move_target(self, tx: float, ty: float, tol_cm: float = 500.0) -> bool:
+        """
+        检查目标坐标是否为有效的移动目标：
+        1. 必须是某个POI的坐标
+        2. 或者是自己订单的pickup/dropoff地址
+        """
+        # 检查是否为POI坐标
+        for node in getattr(self.city_map, "nodes", []):
+            if hasattr(node, "position"):
+                node_x, node_y = float(node.position.x), float(node.position.y)
+                if math.hypot(tx - node_x, ty - node_y) <= tol_cm:
+                    return True
+        
+        # 检查是否为订单的pickup/dropoff地址
+        for order in self.active_orders:
+            # 检查pickup地址
+            pickup_node = getattr(order, "pickup_node", None)
+            if pickup_node and hasattr(pickup_node, "position"):
+                pu_x, pu_y = float(pickup_node.position.x), float(pickup_node.position.y)
+                if math.hypot(tx - pu_x, ty - pu_y) <= tol_cm:
+                    return True
+            
+            # 检查dropoff地址
+            dropoff_node = getattr(order, "dropoff_node", None)
+            if dropoff_node and hasattr(dropoff_node, "position"):
+                do_x, do_y = float(dropoff_node.position.x), float(dropoff_node.position.y)
+                if math.hypot(tx - do_x, ty - do_y) <= tol_cm:
+                    return True
+        
+        # 检查帮助订单的地址
+        for oid, order in (self.help_orders or {}).items():
+            # 检查pickup地址
+            pickup_node = getattr(order, "pickup_node", None)
+            if pickup_node and hasattr(pickup_node, "position"):
+                pu_x, pu_y = float(pickup_node.position.x), float(pickup_node.position.y)
+                if math.hypot(tx - pu_x, ty - pu_y) <= tol_cm:
+                    return True
+            
+            # 检查dropoff地址
+            dropoff_node = getattr(order, "dropoff_node", None)
+            if dropoff_node and hasattr(dropoff_node, "position"):
+                do_x, do_y = float(dropoff_node.position.x), float(dropoff_node.position.y)
+                if math.hypot(tx - do_x, ty - do_y) <= tol_cm:
+                    return True
+        
+        return False
+
     def _nearest_poi_xy(self, kind: str, tol_cm: Optional[float] = None) -> Optional[Tuple[float, float]]:
         tol_cm = float(tol_cm) if tol_cm is not None else self._tol("nearby")
         cand = None; best_d = float("inf")
@@ -1523,6 +1570,12 @@ class DeliveryMan:
         sx, sy = float(self.x), float(self.y)
         tx, ty = float(act.data.get("tx", self.x)), float(act.data.get("ty", self.y))
         tol = float(act.data.get("arrive_tolerance_cm", self._tol("nearby")))
+
+        # 验证目标坐标是否为有效的移动目标
+        if not self._is_valid_move_target(tx, ty, tol_cm=200.0):
+            self.vlm_add_error(f"move_to failed: target coordinates ({self._fmt_xy_m(tx, ty)}) are not valid. You can only move to POI locations or your order pickup/dropoff addresses.")
+            self._finish_action(success=False)
+            return
 
         pace = str(act.data.get("pace", "normal")).strip().lower()
         if pace not in ("accel", "decel", "normal"):
