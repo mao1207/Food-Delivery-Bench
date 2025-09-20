@@ -1571,10 +1571,10 @@ class DeliveryMan:
         tx, ty = float(act.data.get("tx", self.x)), float(act.data.get("ty", self.y))
         tol = float(act.data.get("arrive_tolerance_cm", self._tol("nearby")))
 
-        # 验证目标坐标是否为有效的移动目标
-        if not self._is_valid_move_target(tx, ty, tol_cm=200.0):
-            self.vlm_add_error(f"move_to failed: target coordinates ({self._fmt_xy_m(tx, ty)}) are not valid. You can only move to POI locations or your order pickup/dropoff addresses.")
-            self._finish_action(success=False)
+        # 如果目标坐标就是当前位置，直接完成
+        if self._is_at_xy(tx, ty, tol_cm=tol):
+            self._log(f"already at target location {self._fmt_xy_m(tx, ty)}")
+            self._finish_action(success=True)
             return
 
         pace = str(act.data.get("pace", "normal")).strip().lower()
@@ -1598,7 +1598,17 @@ class DeliveryMan:
             route = [(sx, sy), (tx, ty)]
 
         # 记录移动上下文，统一在 poll_time_events 判定完成/失败
-        self._move_ctx = {"tx": float(tx), "ty": float(ty), "tol": float(tol), "blocked": 0.0}
+        now = self.clock.now_sim()
+        self._move_ctx = {
+            "tx": float(tx), 
+            "ty": float(ty), 
+            "tol": float(tol), 
+            "blocked": 0.0,
+            "last_position": (float(sx), float(sy)),
+            "last_position_time": now,
+            "stagnant_time": 0.0,
+            "stagnant_threshold": 60.0
+        }
 
         if self._viewer and self._viewer_agent_id and hasattr(self._viewer, "go_to_xy"):
             self._viewer.go_to_xy(self._viewer_agent_id, route, allow_interrupt=allow_interrupt, show_path_ms=2000)
@@ -3445,6 +3455,35 @@ class DeliveryMan:
                 # self._auto_try_dropoff()
                 if self._current and self._current.kind == DMActionKind.MOVE_TO:
                     self._finish_action(success=True)
+
+            else:
+                # 检查位置是否停滞
+                current_pos = (float(self.x), float(self.y))
+                last_pos = self._move_ctx.get("last_position", current_pos)
+                last_pos_time = self._move_ctx.get("last_position_time", now)
+                
+                # 计算位置变化
+                position_change = math.hypot(current_pos[0] - last_pos[0], current_pos[1] - last_pos[1])
+                position_change_threshold = 50.0  # 50cm的变化阈值
+                
+                if position_change > position_change_threshold:
+                    # 位置有显著变化，重置停滞计时
+                    self._move_ctx["last_position"] = current_pos
+                    self._move_ctx["last_position_time"] = now
+                    self._move_ctx["stagnant_time"] = 0.0
+                else:
+                    # 位置没有显著变化，累计停滞时间
+                    time_delta = now - last_pos_time
+                    self._move_ctx["stagnant_time"] += time_delta
+                    self._move_ctx["last_position_time"] = now
+                    
+                    # 检查是否停滞时间过长
+                    stagnant_threshold = self._move_ctx.get("stagnant_threshold", 60.0)
+                    if self._move_ctx["stagnant_time"] >= stagnant_threshold:
+                        self._log(f"move_to failed: position stagnant for {self._move_ctx['stagnant_time']:.1f}s (threshold: {stagnant_threshold}s)")
+                        self._move_ctx = None
+                        if self._current and self._current.kind == DMActionKind.MOVE_TO:
+                            self._finish_action(success=False)
 
         # === WAIT ===
         if self._current and self._current.kind == DMActionKind.WAIT and self._wait_ctx and not self._timers_paused:
