@@ -738,8 +738,8 @@ class Map:
 
                 # 先计算门的落点（仅门位置加 90° 修正）
                 door_pos = None
-                w = float(bbox.get("x", 0.0))
-                h = float(bbox.get("y", 0.0))
+                w = float(bbox.get("x", 0.0)) * 1.2  # 扩大1.2倍
+                h = float(bbox.get("y", 0.0)) * 1.2  # 扩大1.2倍
                 yaw_rect = float(ori.get("yaw", 0.0) or 0.0)
                 if w > 0 and h > 0:
                     outward = (yaw_q + DOOR_YAW_OFFSET_DEG) % 360.0
@@ -785,7 +785,7 @@ class Map:
 
                 # 记录（给 viewer 灰框/订单等）
                 building_box = {
-                    "x": cx, "y": cy, "w": float(bbox.get("x", 0.0)), "h": float(bbox.get("y", 0.0)),
+                    "x": cx, "y": cy, "w": float(bbox.get("x", 0.0)) * 1.2, "h": float(bbox.get("y", 0.0)) * 1.2,
                     "yaw": float(ori.get("yaw", 0.0)), "poi_type": tname
                 } if bbox else None
 

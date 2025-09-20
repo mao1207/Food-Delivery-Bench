@@ -424,11 +424,11 @@ def parse_action(model_text: str, dm: Any):
                 if o is not None:
                     orders.append(o)
         else:
-            orders = _orders_at_pickup(dm, tol_cm=300.0)
+            orders = _orders_at_pickup(dm, tol_cm=500.0)
         print(f"DEBUG: PICKUP orders = {[getattr(o, 'id', None) for o in orders]}")
         if not orders:
             raise ValueError("PICKUP: no ready orders (MOVE to the pickup door or specify orders=[...]).")
-        return DMAction(DMActionKind.PICKUP, data=dict(orders=orders, tol_cm=300.0))
+        return DMAction(DMActionKind.PICKUP, data=dict(orders=orders, tol_cm=500.0))
 
     if name == "PLACE_FOOD_IN_BAG":
         bag_cmd = (pos[0] if (len(pos) >= 1 and isinstance(pos[0], str)) else kw.get("bag_cmd") or kw.get("cmd") or "").strip()
