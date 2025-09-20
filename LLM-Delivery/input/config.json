@@ -17,10 +17,10 @@
 
   "initial_earnings": 100,
   "energy_pct_max": 100,
-  "rest_rate_pct_per_min": 0.8,
+  "rest_rate_pct_per_min": 10.0,
   "low_energy_threshold_pct": 30,
   "hospital_duration_s": 900,
-  "hospital_rescue_fee": 20.0,
+  "hospital_rescue_fee": 5.0,
 
   "charge_price_per_percent": 0.05,
 

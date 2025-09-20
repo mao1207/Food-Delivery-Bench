@@ -1574,6 +1574,7 @@ class DeliveryMan:
         # 如果目标坐标就是当前位置，直接完成
         if self._is_at_xy(tx, ty, tol_cm=tol):
             self._log(f"already at target location {self._fmt_xy_m(tx, ty)}")
+            self.vlm_add_ephemeral("location_status", f"already at target location {self._fmt_xy_m(tx, ty)}, choose a new action")
             self._finish_action(success=True)
             return
 
@@ -3483,6 +3484,7 @@ class DeliveryMan:
                         self._log(f"move_to failed: position stagnant for {self._move_ctx['stagnant_time']:.1f}s (threshold: {stagnant_threshold}s)")
                         self._move_ctx = None
                         if self._current and self._current.kind == DMActionKind.MOVE_TO:
+                            self.vlm_add_error(f"move_to failed: cannot move to {self._fmt_xy_m(tx, ty)}, change a place or choose a new action")
                             self._finish_action(success=False)
 
         # === WAIT ===
