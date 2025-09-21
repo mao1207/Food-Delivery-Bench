@@ -2077,7 +2077,7 @@ class DeliveryMan:
         if self.is_rescued:
             self.vlm_add_error("rest failed: in hospital rescue"); self._finish_action(success=False); return
         if self._nearest_poi_xy("rest_area", tol_cm=self._tol("nearby")) is None:
-            self.vlm_add_error("rest failed: not near a rest_area"); self._finish_action(success=False); return
+            self.vlm_add_error("rest failed: not near a rest area; you should first go to a rest_area"); self._finish_action(success=False); return
 
         target = float(act.data.get("target_pct", self.cfg.get("defaults", {}).get("rest_target_pct", 100.0)))
 
