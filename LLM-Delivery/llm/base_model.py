@@ -23,11 +23,12 @@ class BaseModel:
         api_key: str,
         model: str = "gpt-4o-mini",
         *,
-        max_tokens: int = 512,
+        max_tokens: int = 5120,
         temperature: float = 0.0,
         top_p: float = 1.0,
         rate_limit_per_min: Optional[int] = 20,
         supports_vision: Optional[bool] = None,
+        reasoning_effort: Optional[str] = "minimal",  # <— 新增（可选）
     ):
         self.client = OpenAI(base_url=url, api_key=api_key)
         self.model = model
@@ -36,6 +37,7 @@ class BaseModel:
         self.top_p = top_p
         self.rate_limit_per_min = rate_limit_per_min
         self.logger = get_vlm_logger()
+        self.reasoning_effort = reasoning_effort  # <— 新增
 
         # 自动判断是否支持视觉；也可在 __init__ 里手动传 supports_vision 覆盖
         # if supports_vision is None:
@@ -62,6 +64,7 @@ class BaseModel:
         n: int = 1,
         retry: int = 3,
         rate_limit_per_min: Optional[int] = None,
+        reasoning_effort: Optional[str] = None,  # <— 新增（可选覆盖）
         **kwargs,
     ) -> str:
         """
@@ -77,20 +80,18 @@ class BaseModel:
         if 'mistral' in self.model.lower():
             messages = [
                 {
-                    "role": "system", 
+                    "role": "system",
                     "content": get_system_prompt()
                 },
             ]
         else:
             messages = [
                 {
-                    "role": "system", 
-                    "content": get_system_prompt(), 
+                    "role": "system",
+                    "content": get_system_prompt(),
                     "cache_control": {"type": "ephemeral",},
                 },
             ]
-
-        # print(f"System Prompt:\n{get_system_prompt()}")
 
         # 组装 user content
         user_content = [{"type": "text", "text": user_prompt}]
@@ -109,24 +110,45 @@ class BaseModel:
 
         messages.append({"role": "user", "content": user_content})
 
+        # —— 只在 chat.completions 里直传 reasoning_effort（不走 responses）——
+        # 生效条件：gpt-5 家族 且 非 gpt-5-chat-latest，且取值合法
+        effort = reasoning_effort if reasoning_effort is not None else self.reasoning_effort
+        effort_set = {"minimal", "low", "medium", "high"}
+        use_effort = (
+            effort in effort_set and
+            ("gpt-5" in (self.model or "").lower()) and
+            ("gpt-5-chat-latest" not in (self.model or "").lower())
+        )
+
         last_err = None
         for i in range(1, retry + 1):
             try:
                 # if rate:
                 #     time.sleep(max(0.0, 60.0 / float(rate)))
-                resp = self.client.chat.completions.create(
+
+                # 将 reasoning_effort 仅在满足条件时加入请求体
+                create_kwargs = dict(
                     model=self.model,
                     messages=messages,
                     max_tokens=max_tokens,
                     temperature=temperature,
                     top_p=top_p,
                     n=n,
-                    **kwargs,
                 )
-                # print(resp)
+                if use_effort:
+                    print(f"[BaseModel] Using reasoning_effort='{effort}' for model {self.model}")
+                    create_kwargs["reasoning_effort"] = effort  # <— 关键一行
+
+                # 合并外部 kwargs（保留你原有调用习惯）
+                create_kwargs.update(kwargs)
+
+                resp = self.client.chat.completions.create(**create_kwargs)
+                print(create_kwargs)
+                print(resp)
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:
                 self.logger.error(f"[BaseModel] generate attempt {i} failed: {e}")
+                last_err = e
 
         raise RuntimeError(f"VLM generate failed after {retry} tries: {last_err}")
 
@@ -135,7 +157,7 @@ class BaseModel:
         """
         支持：
         - numpy.ndarray (H,W,3) or (H,W) -> JPEG base64 data URL
-        - str: 
+        - str:
             * 以 "http"/"https"/"data:image" 开头：直接作为 URL
             * 其他：当作本地文件路径读取 -> data URL
         - bytes: 原始图像二进制 -> data URL
