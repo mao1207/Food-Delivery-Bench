@@ -3885,6 +3885,8 @@ class DeliveryMan:
         """前进一步"""
         try:
             self._ue.delivery_man_step_forward(self.agent_id, 100, 1)
+
+            self._consume_by_distance(100)
             self._finish_action(success=True)
         except Exception as e:
             self.vlm_add_error(f"step_forward failed: {e}")

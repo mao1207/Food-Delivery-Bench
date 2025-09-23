@@ -136,15 +136,15 @@ class BaseModel:
                     n=n,
                 )
                 if use_effort:
-                    print(f"[BaseModel] Using reasoning_effort='{effort}' for model {self.model}")
+                    # print(f"[BaseModel] Using reasoning_effort='{effort}' for model {self.model}")
                     create_kwargs["reasoning_effort"] = effort  # <— 关键一行
 
                 # 合并外部 kwargs（保留你原有调用习惯）
                 create_kwargs.update(kwargs)
 
                 resp = self.client.chat.completions.create(**create_kwargs)
-                print(create_kwargs)
-                print(resp)
+                # print(create_kwargs)
+                # print(resp)
                 return (resp.choices[0].message.content or "").strip()
             except Exception as e:
                 self.logger.error(f"[BaseModel] generate attempt {i} failed: {e}")

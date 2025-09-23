@@ -36,8 +36,6 @@ ACTION_API_SPEC: str = r"""COMMANDS (UPPERCASE):
 - VIEW_ORDERS()     # view all available orders
 - VIEW_BAG()        # view your bag
 - ACCEPT_ORDER(order_id) or ACCEPT_ORDER([order_id, ...])       # accept one or more orders
-- MOVE(x, y) # x,y in meters; MUST use 'm' suffix (e.g., MOVE(102.3m, -5.0m))
-- MOVE(x, y, pace="accel"|"normal"|"decel")
 - PICKUP(orders=[12, 18])  # pick ready orders at the pickup door (two-step: pickup -> place into bag)
 - PLACE_FOOD_IN_BAG(bag_cmd="order 12: 1,2 -> A; 3 -> B")
 - CHARGE(target_pct=100)
@@ -71,8 +69,6 @@ OUTPUT_EXAMPLES: str = """OUTPUT EXAMPLES (exactly one line):
   VIEW_BAG()
   ACCEPT_ORDER(12)
   ACCEPT_ORDER([12, 18])
-  MOVE(102.3m, 885.5m)
-  MOVE(250.0m, 120.0m, pace="accel")
   PICKUP(orders=[12])
   PLACE_FOOD_IN_BAG(bag_cmd="order 12: 1,2 -> A; 3 -> B")
   CHARGE(target_pct=100)
