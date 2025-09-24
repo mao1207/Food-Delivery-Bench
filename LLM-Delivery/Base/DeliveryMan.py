@@ -216,6 +216,11 @@ class DeliveryMan:
     vlm_last_actions: Deque[str] = field(default_factory=lambda: deque(maxlen=5), repr=False)
     vlm_last_compiled_input: Optional[str] = None
 
+    # Human Control
+    human_control_mode: bool = field(default=False, repr=False)
+    human_action_queue: Deque[DMAction] = field(default_factory=deque, repr=False)
+    human_action_callback: Optional[Callable[['DeliveryMan'], None]] = field(default=None, repr=False)
+
     # --- VLM 异步通道 ---
     _vlm_executor: Optional[Executor] = field(default=None, repr=False)
     _vlm_future: Optional[Future] = field(default=None, repr=False)
@@ -437,6 +442,170 @@ class DeliveryMan:
         self._vlm_client = client
         self.vlm_infer_fn = self._vlm_infer
         self._recorder.model = str(self._vlm_client.model)
+
+    # ===== Human Control Methods =====
+    def set_human_control_mode(self, enabled: bool):
+        """设置人类控制模式"""
+        self.human_control_mode = enabled
+        if enabled:
+            self._log("Switched to human control mode")
+            # 清空VLM相关状态
+            self.vlm_clear_ephemeral()
+            self.vlm_clear_errors()
+            # 清空动作队列
+            self._queue.clear()
+            self._current = None
+        else:
+            self._log("Switched to VLM control mode")
+            # 清空人类动作队列
+            self.human_action_queue.clear()
+
+    def submit_human_action(self, action: DMAction):
+        """提交人类动作"""
+        if not self.human_control_mode:
+            self._log("Warning: Not in human control mode, ignoring human action")
+            return False
+        
+        if not isinstance(action, DMAction):
+            self._log(f"Invalid human action type: {type(action)}")
+            return False
+        
+        self.human_action_queue.append(action)
+        queue_position = len(self.human_action_queue)
+        self._log(f"📤 Human action queued: {action.kind} {action.data if action.data else ''}")
+        self._log(f"   队列位置: {queue_position}")
+        return True
+
+    def get_available_actions(self) -> List[str]:
+        """获取可用的人类动作列表"""
+        return [action.value for action in DMActionKind]
+
+    def set_human_action_callback(self, callback: Callable[['DeliveryMan'], None]):
+        """设置人类动作回调函数"""
+        self.human_action_callback = callback
+
+    def create_human_action(self, action_kind: str, **kwargs) -> DMAction:
+        """创建人类动作的便利方法"""
+        try:
+            kind = DMActionKind(action_kind)
+            # 兼容人类输入：move_to 支持 {"x":..., "y":...} -> 归一化为 {"tx":..., "ty":...}
+            if kind == DMActionKind.MOVE_TO:
+                if "tx" not in kwargs and "x" in kwargs:
+                    kwargs["tx"] = kwargs.pop("x")
+                if "ty" not in kwargs and "y" in kwargs:
+                    kwargs["ty"] = kwargs.pop("y")
+            # 兼容人类输入：pickup 支持 {"oid":..} 或 {"oids":[..]}，转为 orders 对象列表
+            if kind == DMActionKind.PICKUP:
+                # 1) 兼容 oid/oids -> orders 对象列表
+                if ("oid" in kwargs or "oids" in kwargs) and "orders" not in kwargs:
+                    oids: List[int] = []
+                    if "oid" in kwargs:
+                        try:
+                            oids = [int(kwargs.pop("oid"))]
+                        except Exception:
+                            oids = []
+                    elif "oids" in kwargs:
+                        try:
+                            oids = [int(v) for v in (kwargs.pop("oids") or [])]
+                        except Exception:
+                            oids = []
+                    # 从 active_orders 和 help_orders 中按 id 收集对象
+                    orders_objs: List[Any] = []
+                    idset = set(oids)
+                    if idset:
+                        for o in list(self.active_orders or []):
+                            oid = getattr(o, "id", None)
+                            if oid is not None and int(oid) in idset:
+                                orders_objs.append(o)
+                        for oid, o in list((self.help_orders or {}).items()):
+                            try:
+                                if int(oid) in idset:
+                                    orders_objs.append(o)
+                            except Exception:
+                                pass
+                    if orders_objs:
+                        kwargs["orders"] = orders_objs
+                # 2) 若传入的是 orders=[id,...]，也尝试映射为对象
+                elif "orders" in kwargs:
+                    raw_orders = list(kwargs.get("orders") or [])
+                    needs_map = all((isinstance(x, (int, str)) for x in raw_orders))
+                    if needs_map:
+                        try:
+                            want_ids = [int(x) for x in raw_orders]
+                        except Exception:
+                            want_ids = []
+                        orders_objs: List[Any] = []
+                        idset = set(want_ids)
+                        if idset:
+                            for o in list(self.active_orders or []):
+                                oid = getattr(o, "id", None)
+                                if oid is not None and int(oid) in idset:
+                                    orders_objs.append(o)
+                            for oid, o in list((self.help_orders or {}).items()):
+                                try:
+                                    if int(oid) in idset:
+                                        orders_objs.append(o)
+                                except Exception:
+                                    pass
+                        kwargs["orders"] = orders_objs
+                # 3) 自动拾取：若未显式指定 orders/oid(s)，则收集"当前取餐口可取的订单"
+                if "orders" not in kwargs:
+                    try:
+                        tol_cm = float(kwargs.get("tol_cm", 500.0))
+                    except Exception:
+                        tol_cm = 500.0
+                    auto_orders: List[Any] = []
+                    for o in list(self.active_orders or []):
+                        if getattr(o, "has_picked_up", False):
+                            continue
+                        node = getattr(o, "pickup_node", None)
+                        if node is None:
+                            continue
+                        try:
+                            px = float(node.position.x); py = float(node.position.y)
+                        except Exception:
+                            continue
+                        if self._is_at_xy(px, py, tol_cm=tol_cm):
+                            auto_orders.append(o)
+                    if auto_orders:
+                        kwargs["orders"] = auto_orders
+                        kwargs.setdefault("tol_cm", tol_cm)
+            return DMAction(kind=kind, data=kwargs)
+        except ValueError:
+            raise ValueError(f"Invalid action kind: {action_kind}. Available actions: {self.get_available_actions()}")
+
+    def get_current_status(self) -> Dict[str, Any]:
+        """获取当前状态信息，供人类控制参考"""
+        rec = getattr(self, "_recorder", None)
+        sim_time_s = float(getattr(rec, "active_elapsed_s", 0.0) or 0.0)
+        # 构造轻量订单详情，避免 UI 直接访问对象属性导致异常
+        active_details: List[Dict[str, Any]] = []
+        try:
+            for o in (self.active_orders or []):
+                oid = getattr(o, "id", None)
+                if oid is None:
+                    continue
+                active_details.append(dict(
+                    id=int(oid),
+                    picked=bool(getattr(o, "has_picked_up", False)),
+                    delivered=bool(getattr(o, "has_delivered", False)),
+                    pickup=str(getattr(o, "pickup_road_name", "") or ""),
+                    dropoff=str(getattr(o, "dropoff_road_name", "") or ""),
+                ))
+        except Exception:
+            pass
+        return {
+            "position": (self.x, self.y),
+            "mode": self.mode.value,
+            "energy": self.energy_pct,
+            "earnings": self.earnings_total,
+            "active_orders": [getattr(o, "id", None) for o in self.active_orders if hasattr(o, "id")],
+            "active_orders_detail": active_details,
+            "carrying": self.carrying,
+            "current_action": self._current.kind.value if self._current else None,
+            "human_control_mode": self.human_control_mode,
+            "sim_time_s": sim_time_s,
+        }
 
     # ============== VLM 异步最小封装（仅网络在线程池；取图在主线程） ==============
     def set_vlm_executor(self, executor: Executor):
@@ -816,7 +985,12 @@ class DeliveryMan:
 
     # ===== map helpers =====
     def _xy_of_node(self, node: Any) -> Optional[Tuple[float, float]]:
-        return float(node.position.x), float(node.position.y)
+        try:
+            if not node or not hasattr(node, "position") or node.position is None:
+                return None
+            return float(node.position.x), float(node.position.y)
+        except Exception:
+            return None
 
     def _is_at_xy(self, x: float, y: float, tol_cm: Optional[float] = None) -> bool:
         tol_cm = float(tol_cm) if tol_cm is not None else self._tol("nearby")
@@ -870,6 +1044,12 @@ class DeliveryMan:
         return False
 
     def _nearest_poi_xy(self, kind: str, tol_cm: Optional[float] = None) -> Optional[Tuple[float, float]]:
+        # if kind == "charging_station":
+        #     for n in getattr(self.city_map, "nodes", []):
+        #         if getattr(n, "type", "") == kind or getattr(self.city_map._door2poi.get(n), "type", "") == kind:
+        #             print("charging_station: ", n)
+
+
         tol_cm = float(tol_cm) if tol_cm is not None else self._tol("nearby")
         cand = None; best_d = float("inf")
         for n in getattr(self.city_map, "nodes", []):
@@ -1447,6 +1627,10 @@ class DeliveryMan:
         if self.is_rescued or self._hospital_ctx is not None or self.energy_pct <= 0.0:
             return None
 
+        # 人类控制模式下不执行VLM决策
+        if self.human_control_mode:
+            return None
+
         # 已经在等一次 VLM 结果了，就不要重复发
         if getattr(self, "_waiting_vlm", False):
             return None
@@ -1504,24 +1688,65 @@ class DeliveryMan:
         if self._recorder:
             self._recorder.inc_nested(f"action_attempts.{act.kind.value}")
 
-        handler(self, act, allow_interrupt)
+        try:
+            handler(self, act, allow_interrupt)
+        except Exception as e:
+            # 将异常视为动作启动失败；在人类控制模式下不恢复计时
+            try:
+                self.vlm_add_error(f"action {act.kind.value} failed: {e}")
+            except Exception:
+                pass
+            try:
+                self._log(f"action exception: {e}")
+            except Exception:
+                pass
+            self._finish_action(success=False)
 
     def _finish_action(self, *, success: bool):
         if self._current and callable(self._current.on_done):
             self._current.on_done(self)
         if success and self._current:
             self._register_success(action_to_text(self._current))
+            # 人类控制模式下的详细反馈
+            if self.human_control_mode:
+                self._log(f"✅ 人类动作执行成功: {action_to_text(self._current)}")
 
         if self._recorder and self._current and success:
             action_name = self._current.kind.value
             self._recorder.inc_nested(f"action_successes.{action_name}")
+            
+        # 人类控制模式下的失败反馈
+        if not success and self._current and self.human_control_mode:
+            self._log(f"❌ 人类动作执行失败: {action_to_text(self._current)}")
+            
+        # 失败原因详细输出（无论是否人类控制）
+        if not success and self._current:
+            err = ""
+            try:
+                err = (self.vlm_errors or "").strip()
+            except Exception:
+                err = ""
+            if err:
+                self._log(f"🔎 失败原因: {err}")
             
         self._current = None
 
         if self._lifecycle_done:
             self._current = None
             return
+
         
+        # 人类控制模式：不触发默认决策器，保持空闲并暂停计时，等待人类输入
+        if self.human_control_mode:
+            self.timers_pause()
+            if not self.human_action_queue and self.human_action_callback:
+                try:
+                    self.human_action_callback(self)
+                except Exception:
+                    pass
+            return
+
+        # 自动模式：继续默认决策器
         self.timers_pause()
         next_act = self._default_decider()
         if next_act is not None:
@@ -1959,6 +2184,11 @@ class DeliveryMan:
     def _handle_charge_escooter(self, _self, act: DMAction, _allow_interrupt: bool):
         if self._charge_ctx is not None:
             self.vlm_add_error("charge failed: already charged; don't charge again"); self._finish_action(success=False); return
+
+        # print("position: ", self.x, self.y)
+        # for n in getattr(self.city_map, "nodes", []):
+        #     if getattr(n, "type", "") == "charging_station":
+        #         print("charging_station: ", n)
 
         station_xy = self._nearest_poi_xy("charging_station", tol_cm=self._tol("nearby"))
         if station_xy is None:
@@ -3340,6 +3570,31 @@ class DeliveryMan:
 
         self._auto_try_dropoff()
 
+        # === Human Control Mode ===
+        if self.human_control_mode:
+            # 若等待人类决策（无当前动作、无队列），且不在医院中，暂停计时器
+            if not self._current and not self.human_action_queue and not self._hospital_ctx:
+                self.timers_pause()
+            # 处理人类动作队列
+            if self.human_action_queue and not self._current:
+                human_action = self.human_action_queue.popleft()
+                self.enqueue_action(human_action, allow_interrupt=True)
+                self._log(f"🚀 Executing human action: {human_action.kind}")
+                if human_action.data:
+                    self._log(f"   参数: {human_action.data}")
+                remaining_queue = len(self.human_action_queue)
+                if remaining_queue > 0:
+                    self._log(f"   剩余队列: {remaining_queue} 个动作")
+            
+            # 如果没有当前动作且没有人类动作等待，调用回调函数
+            if not self._current and not self.human_action_queue and self.human_action_callback:
+                self.human_action_callback(self)
+            # 若开始执行动作，恢复计时器（仅当动作未在同一帧内失败被清空）
+            if self._timers_paused:
+                from PyQt5.QtCore import QTimer
+                QTimer.singleShot(0, lambda: self.timers_resume() if self._current else None)
+
+                
         # === active orders elapsed time ===
         if self._orders_last_tick_sim is None:
             self._orders_last_tick_sim = now

@@ -21,8 +21,8 @@ from Base.Timer import VirtualClock
 from Base.Bus import Bus, BusRoute, BusStop
 from Base.BusManager import BusManager
 
-ROADS_JSON        = r"D:\Projects\Food-Delivery-Bench\Test_Data\test\roads.json"
-WORLD_JSON        = r"D:\Projects\Food-Delivery-Bench\Test_Data\test\progen_world_enriched.json"
+ROADS_JSON        = r"D:\Projects\Food-Delivery-Bench\Test_Data\maps\large-city-26roads\roads.json"
+WORLD_JSON        = r"D:\Projects\Food-Delivery-Bench\Test_Data\maps\large-city-26roads\progen_world_enriched.json"
 
 def _load_world_nodes(path: str):
     with open(path, "r", encoding="utf-8") as f:

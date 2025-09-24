@@ -43,3 +43,7 @@ Saved/
 *.tar
 *.rar
 *.7z
+
+results/
+log/
+evaluation/

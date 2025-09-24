@@ -763,7 +763,7 @@ def main(paths, output_dir=None, show_plots: bool = False):
 if __name__ == "__main__":
     # Example usage with multiple directories
     results = main(paths=[
-        r"D:\Projects\Food-Delivery-Bench\results\20250921_083239_large28",
-        r"D:\Projects\Food-Delivery-Bench\results\20250920_224023_large30",
-        r"D:\Projects\Food-Delivery-Bench\results\20250919_232605_large26",
-    ], output_dir='./main/gpt-4o', show_plots=False)
+        r"D:\Projects\Food-Delivery-Bench\results\large30_per_hour_fixed\qwen32_large30",
+        r"D:\Projects\Food-Delivery-Bench\results\large28_per_hour_fixed\qwen32_large28",
+        r"D:\Projects\Food-Delivery-Bench\results\large26_per_hour_fixed\qwen32_large26",
+    ], output_dir='./main/qwen32', show_plots=False)

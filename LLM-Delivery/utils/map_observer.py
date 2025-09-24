@@ -208,20 +208,30 @@ class OrdersDialog(QDialog):
     def _order_text_with_items(self, o, *, now_sim: float) -> str:
         dist_m = float(getattr(o, "distance_cm", 0.0)) / 100.0
         dist_km = dist_m / 1000.0
+
+        # 坐标：优先使用吸附后的 node.position（单位保持 cm），回退到原始 address
+        try:
+            pn = getattr(o, "pickup_node", None)
+            px = float(pn.position.x); py = float(pn.position.y)
+        except Exception:
+            px = float(getattr(getattr(o, "pickup_address", None), "x", float("nan")))
+            py = float(getattr(getattr(o, "pickup_address", None), "y", float("nan")))
+
+        try:
+            dn = getattr(o, "dropoff_node", None)
+            dx = float(dn.position.x); dy = float(dn.position.y)
+        except Exception:
+            dx = float(getattr(getattr(o, "delivery_address", None), "x", float("nan")))
+            dy = float(getattr(getattr(o, "delivery_address", None), "y", float("nan")))
+
         base = [
             f"[Order #{getattr(o,'id','?')}]",
-            f"  Pickup : ({o.pickup_address.x:.1f}, {o.pickup_address.y:.1f})  | road: {getattr(o,'pickup_road_name','')}",
-            f"  Dropoff: ({o.delivery_address.x:.1f}, {o.delivery_address.y:.1f}) | road: {getattr(o,'dropoff_road_name','')}",
+            f"  Pickup : ({px:.1f}, {py:.1f})  | road: {getattr(o,'pickup_road_name','')}",
+            f"  Dropoff: ({dx:.1f}, {dy:.1f}) | road: {getattr(o,'dropoff_road_name','')}",
             f"  Path   : {len(getattr(o,'path_nodes',[]) or [])} nodes",
             f"  Dist   : {dist_m:.1f} m  ({dist_km:.3f} km)",
         ]
-        tl = float(getattr(o, "time_limit_s", 0.0))
-        base.append(f"  Limit  : {self._fmt_min(tl)}")
-        spent = float(getattr(o, "sim_elapsed_active_s", 0.0) or 0.0)
-        base.append(f"  Spent  : {self._fmt_min(spent)}")
-        if hasattr(o, "earnings"):
-            base.append(f"  $$     : ${float(o.earnings):.2f}")
-
+        
         if hasattr(o, "is_ready_for_pickup") and not o.is_ready_for_pickup(now_sim):
             remain = float(o.remaining_prep_s(now_sim))
             base.append(f"  Prep   : ready in ~{self._fmt_min(remain)} (virtual)")
@@ -941,6 +951,12 @@ class MapObserver(MapCanvasBase):
         self.btn_show_requests = QPushButton("Show Requests", btn_bar)
         self.btn_show_requests.clicked.connect(self._on_show_requests_clicked)
         hb.addWidget(self.btn_show_requests)
+        
+        # ✅ 新增：人类控制按钮
+        self.btn_human_control = QPushButton("Human Control", btn_bar)
+        self.btn_human_control.clicked.connect(self._on_human_control_clicked)
+        hb.addWidget(self.btn_human_control)
+        
         hb.addStretch(1)
         self.vbox.addWidget(btn_bar)
 
@@ -950,6 +966,7 @@ class MapObserver(MapCanvasBase):
         self._cameras_dialog: Optional[CamerasDialog] = None
         self._bags_dialog: Optional[AgentBagDialog] = None
         self._requests_dialog: Optional[RequestsDialog] = None
+        self._human_control_dialog: Optional['HumanControlDialog'] = None
 
         # 叠加层缓存
         self._escooter_badge_items: Dict[str, Optional[pg.ScatterPlotItem]] = {}
@@ -1001,6 +1018,15 @@ class MapObserver(MapCanvasBase):
         else:
             self._requests_dialog.set_sources(comms=self._comms, agents=self._dm_registry, clock=self.clock)
         self._requests_dialog.show(); self._requests_dialog.raise_(); self._requests_dialog.activateWindow()
+
+    def _on_human_control_clicked(self):
+        """人类控制按钮点击处理"""
+        if self._human_control_dialog is None:
+            from utils.human_control_dialog import HumanControlDialog
+            self._human_control_dialog = HumanControlDialog(self, agents=self._dm_registry)
+        else:
+            self._human_control_dialog.set_agents(self._dm_registry)
+        self._human_control_dialog.show(); self._human_control_dialog.raise_(); self._human_control_dialog.activateWindow()
 
     # ---------- 工具：拿 ViewBox ----------
     def _vb(self):
