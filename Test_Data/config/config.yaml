@@ -1,0 +1,147 @@
+simworld:
+  seed: 42
+  dt: 0.2
+  enable_logging: false
+  enable_console_logging: false
+  ue_manager_path: "/Game/TrafficSystem/UE_Manager.UE_Manager_C"
+
+citygen:
+  input_layout: false
+  input_roads: "../data/predefined_roads.json"
+  input_bounding_boxes: "../data/Bbox.json"
+  output_dir: "D:/LLMDelivery-LJ/Test_Data/test2"
+  world_json: "D:/LLMDelivery-LJ/Test_Data/test2/progen_world.json"
+  ue_asset_path: "../data/ue_assets.json"
+
+  road:
+    segment_length: 200
+    segment_count_limit: 50
+    road_snap_distance: 90
+    ignore_conflicts: false
+    only_highway: false
+    two_segment_init: true
+    time_delay_between_segments: 0.001
+    minimum_intersection_deviation: 30
+
+  building:
+    building_road_distance: 25
+    building_intersection_distance: 0
+    building_building_distance: 0
+    building_side_distance: 27
+
+  element:
+    generation: false
+    generation_thread_number: 16
+    element_building_distance: 8
+    element_element_distance: 10
+    add_building_attempts: 10
+
+    parking_offset: 10
+    furniture_offset: 12
+    tree_offset: 23
+
+    parking_density: 0.05
+    furniture_density: 0.05
+    tree_density: 0.1
+
+  quadtree:
+    max_levels: 10
+    max_objects: 10
+    bounds:
+      x: -2000
+      y: -2000
+      width: 4000
+      height: 4000
+
+  route:
+    generation: false
+    number: 2
+    min_points_per_route: 2
+    max_points_per_route: 5
+
+assets_rp:
+  input_description_map: "../data/DescriptionMap.json"
+  input_sample_dataset: "../data/sample_dataset"
+  input_dir: "output"
+  output_dir: "output_rp"
+  env_description_retrieval_model: "paraphrase-MiniLM-L6-v2"
+  assets_retrieval_model: "openai/clip-vit-large-patch14-336"
+  openai_api_key: "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"
+
+traffic:
+  num_vehicles: 0
+  num_pedestrians: 0
+  map_path: "D:/jiawei/SimWorld-PysBench/data/roads.json"
+  distance_between_objects: 400
+  detection_angle: 40
+  gap_between_waypoints: 800
+  num_lanes: 1
+  lane_offset: 300
+  intersection_offset: 3000
+  sidewalk_offset: 1550
+  crosswalk_offset: 1550
+  steering_point_num: 12
+
+  pedestrian:
+    max_speed: 200
+    min_speed: 100
+    waypoint_distance_threshold: 400
+    model_path: "/Game/TrafficSystem/Pedestrian/Base_Pedestrian.Base_Pedestrian_C"
+
+  vehicle:
+    steering_pid:
+      kp: 0.15
+      ki: 0.005
+      kd: 0.12
+    max_steering: 0.5
+    lane_deviation: 70
+    distance_to_end: 400
+    model_file_path: "D:/jiawei/SimWorld-PysBench/data/vehicle_types.json"
+
+  traffic_signal:
+    light_normal_offset: -1400
+    light_radial_offset: 1400
+    traffic_light_model_path: "/Game/city_props/BP/props/street_light/BP_street_light.BP_street_light_C"
+    pedestrian_light_model_path: "/Game/city_props/BP/props/street_light/BP_street_light_ped.BP_street_light_ped_C"
+    green_light_duration: 3
+    yellow_light_duration: 1
+    pedestrian_green_light_duration: 60
+
+map:
+  input_roads: "../output/roads.json"
+
+user:
+  num_agents: 3
+  speed: 200
+  a2a: True
+  rule_based: True
+  waypoint_distance_threshold: 200
+  model_path: "/Game/TrafficSystem/Pedestrian/Base_User_Agent.Base_User_Agent_C"
+  num_threads: 20
+  llm_model_path: "meta-llama/llama-3.3-70b-instruct"
+  llm_api_key: "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"
+  llm_url: "https://openrouter.ai/api/v1"
+
+
+
+pysbench:
+  sidewalk_offset: 1700
+  waypoints_distance: 900
+  waypoints_normal_distance: 150
+  input_roads: "data/roads.json"
+  element_number_per_road: 60
+  bbox: "data/bbox.json"
+  task_file: "dataset/tasks.json"
+  task_level: 2
+  task: task12
+  agent_file: "dataset/agent.json"
+  agent_type: "openrouter"
+  rule_based: False
+  waypoint_distance_threshold: 280
+  speed: 200
+  model_path: "/Game/TrafficSystem/Pedestrian/Base_User_Agent.Base_User_Agent_C"
+  num_threads: 20
+  history_window: 3
+  input_world_path: "data/progen_world.json"
+  output_world_path: "output/progen_world.json"
+  enable_planner: False

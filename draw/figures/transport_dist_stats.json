@@ -1,0 +1,117 @@
+{
+  "input_dir": "D:\\BaiduNetdiskDownload\\Food-Delivery-Bench-2.0\\initial_results",
+  "models": [
+    "llama-3.2-90b-vision-instruct",
+    "qwen2.5-vl-72b-instruct",
+    "gpt-4o",
+    "gpt-5",
+    "gemini-2.5-flash",
+    "claude-3.7-sonnet"
+  ],
+  "modes": [
+    "walk",
+    "e-scooter",
+    "drag_scooter",
+    "car"
+  ],
+  "global": {
+    "mode_totals_seconds": {
+      "walk": 1228539.0449999983,
+      "e-scooter": 867015.896999999,
+      "drag_scooter": 494138.39400000277,
+      "car": 9188.777999999846
+    }
+  },
+  "per_model": {
+    "llama-3.2-90b-vision-instruct": {
+      "time_seconds": {
+        "walk": 313228.39500000014,
+        "e-scooter": 110061.58500000075,
+        "drag_scooter": 45283.265999999974,
+        "car": 0.0
+      },
+      "row_total_seconds": 468573.24600000086,
+      "shares": {
+        "walk": 0.668472640454593,
+        "e-scooter": 0.23488661791843007,
+        "drag_scooter": 0.0966407416269769,
+        "car": 0.0
+      }
+    },
+    "qwen2.5-vl-72b-instruct": {
+      "time_seconds": {
+        "walk": 171526.35000000062,
+        "e-scooter": 114127.05899999976,
+        "drag_scooter": 179485.71299999935,
+        "car": 0.0
+      },
+      "row_total_seconds": 465139.12199999974,
+      "shares": {
+        "walk": 0.36876354167431374,
+        "e-scooter": 0.24536112660074166,
+        "drag_scooter": 0.38587533172494454,
+        "car": 0.0
+      }
+    },
+    "gpt-4o": {
+      "time_seconds": {
+        "walk": 185264.03699999987,
+        "e-scooter": 171898.12200000134,
+        "drag_scooter": 96213.93000000072,
+        "car": 4319.013000000006
+      },
+      "row_total_seconds": 457695.10200000193,
+      "shares": {
+        "walk": 0.404776096992183,
+        "e-scooter": 0.3755734357847697,
+        "drag_scooter": 0.21021402584290777,
+        "car": 0.009436441380139542
+      }
+    },
+    "gpt-5": {
+      "time_seconds": {
+        "walk": 213754.90799999863,
+        "e-scooter": 107943.42600000094,
+        "drag_scooter": 105990.92100000166,
+        "car": 0.0
+      },
+      "row_total_seconds": 427689.2550000012,
+      "shares": {
+        "walk": 0.49979022269333845,
+        "e-scooter": 0.25238750971193,
+        "drag_scooter": 0.2478222675947315,
+        "car": 0.0
+      }
+    },
+    "gemini-2.5-flash": {
+      "time_seconds": {
+        "walk": 215466.5729999987,
+        "e-scooter": 144695.14799999737,
+        "drag_scooter": 48685.413000000655,
+        "car": 0.0
+      },
+      "row_total_seconds": 408847.1339999967,
+      "shares": {
+        "walk": 0.5270101098470716,
+        "e-scooter": 0.3539101438338529,
+        "drag_scooter": 0.11907974631907545,
+        "car": 0.0
+      }
+    },
+    "claude-3.7-sonnet": {
+      "time_seconds": {
+        "walk": 129298.78200000082,
+        "e-scooter": 218290.5569999991,
+        "drag_scooter": 18479.15100000036,
+        "car": 4869.764999999839
+      },
+      "row_total_seconds": 370938.2550000001,
+      "shares": {
+        "walk": 0.34857224957830457,
+        "e-scooter": 0.5884821909241985,
+        "drag_scooter": 0.04981732337097546,
+        "car": 0.013128236126521482
+      }
+    }
+  }
+}

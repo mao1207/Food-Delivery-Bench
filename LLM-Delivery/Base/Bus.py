@@ -1,0 +1,342 @@
+# -*- coding: utf-8 -*-
+# Base/Bus.py
+
+import time
+import math
+from dataclasses import dataclass, field
+from enum import Enum
+from threading import Lock
+from typing import List, Tuple, Optional, Dict, Any
+
+from Base.Timer import VirtualClock
+
+class BusState(str, Enum):
+    STOPPED = "stopped"      # 在站点停靠
+    MOVING = "moving"        # 在路线行驶
+    WAITING = "waiting"      # 等待发车
+
+@dataclass
+class BusStop:
+    """公交站点"""
+    id: str
+    x: float
+    y: float
+    name: str = ""
+    wait_time_s: float = 10.0  # 停靠时间（秒）
+
+@dataclass
+class BusRoute:
+    """公交路线"""
+    id: str
+    name: str
+    stops: List[BusStop]
+    path_points: List[Tuple[float, float]]  # 路线路径点
+    speed_cm_s: float = 1200.0  # 行驶速度
+    direction: int = 1  # 1: 正向, -1: 反向
+
+@dataclass
+class Bus:
+    """公交车"""
+    id: str
+    route: BusRoute
+    clock: VirtualClock = field(default_factory=lambda: VirtualClock())
+
+    # 位置和状态
+    x: float = 0.0
+    y: float = 0.0
+    state: BusState = BusState.WAITING
+
+    # 路线进度
+    current_stop_index: int = -1    # 当前站点（上一个到达的站点） current_stop_index + 1 是正在前往的站点
+    current_path_index: int = 0     # 当前路径点（上一个到达的路径点）
+    progress_to_next: float = 0.0  # 到下一个路径点的进度 [0,1]
+
+    # 时间控制
+    stop_start_time: float = 0.0
+    last_update_time: float = 0.0
+    
+    # 新增：基于时间的移动控制
+    departure_time: float = 0.0     # 出发时间
+    arrival_time: float = 0.0       # 预计到达时间
+    target_stop_index: int = -1     # 正在前往的站点索引
+
+    # 乘客
+    passengers: List[str] = field(default_factory=list)  # 乘客ID列表
+
+    def __post_init__(self):
+        # 初始化锁
+        self._lock = Lock()
+
+        # 初始化到第一个路径点（path[0]）
+        if self.route.path_points:
+            first_point = self.route.path_points[0]
+            self.x = first_point[0]
+            self.y = first_point[1]
+            self.current_path_index = 0
+            self.progress_to_next = 0.0
+            self.state = BusState.MOVING  # 从第一个路径点开始移动
+        elif self.route.stops:
+            # 如果没有路径点，使用第一个站点
+            first_stop = self.route.stops[0]
+            self.x = first_stop.x
+            self.y = first_stop.y
+            self.state = BusState.STOPPED
+            self.stop_start_time = self.clock.now_sim()
+
+        self.last_update_time = self.clock.now_sim()
+
+    def update(self):
+        """更新公交状态和位置"""
+        now = self.clock.now_sim()
+        self.last_update_time = now
+
+        if self.state == BusState.STOPPED:
+            self._update_stopped(now)
+        elif self.state == BusState.MOVING:
+            self._update_moving_time_based(now)
+
+    def _update_stopped(self, now: float):
+        """处理停靠状态"""
+        if not self.route.stops:
+            return
+
+        current_stop = self.route.stops[self.current_stop_index]
+        stop_duration = now - self.stop_start_time
+
+        if stop_duration >= current_stop.wait_time_s:
+            # 停靠时间到，准备出发
+            self._depart_from_stop()
+
+    def _update_moving_time_based(self, now: float):
+        """基于时间的移动处理"""
+        if not self.route.stops:
+            return
+
+        # 检查是否到达目标站点
+        if now >= self.arrival_time and self.target_stop_index >= 0:
+            self._arrive_at_stop(self.target_stop_index)
+            return
+
+        # 如果还没有设置目标站点，设置下一个站点为目标
+        if self.target_stop_index < 0:
+            next_stop_index = self.current_stop_index + 1
+            if next_stop_index < len(self.route.stops):
+                self._set_target_stop(next_stop_index, now)
+            else:
+                # 到达路线终点，准备掉头
+                self._reverse_route()
+                if self.route.stops:
+                    self._set_target_stop(0, now)
+
+    def _set_target_stop(self, stop_index: int, now: float):
+        """设置目标站点并计算到达时间"""
+        if stop_index >= len(self.route.stops):
+            return
+
+        self.target_stop_index = stop_index
+        target_stop = self.route.stops[stop_index]
+        
+        # 计算通过路径点到目标站点的实际距离
+        distance_cm = self._calculate_path_distance_to_stop(stop_index)
+        
+        # 计算所需时间
+        if self.route.speed_cm_s > 0:
+            travel_time = distance_cm / self.route.speed_cm_s
+        else:
+            travel_time = 0.0
+        
+        # 设置出发和到达时间
+        self.departure_time = now
+        self.arrival_time = now + travel_time
+
+    def _calculate_path_distance_to_stop(self, stop_index: int) -> float:
+        """计算通过路径点到目标站点的实际距离"""
+        if not self.route.path_points or stop_index >= len(self.route.stops):
+            return 0.0
+
+        total_distance = 0.0
+        
+        # 从当前位置开始计算
+        current_x, current_y = self.x, self.y
+        
+        # 找到目标站点在路径点中的索引
+        # 路径点结构：path[0], station0, path[1], station1, ...
+        # 站点在路径点中的索引是：1, 3, 5, ... (奇数位置)
+        target_path_index = stop_index * 2 + 1
+        
+        # 如果目标路径索引超出范围，使用最后一个路径点
+        if target_path_index >= len(self.route.path_points):
+            target_path_index = len(self.route.path_points) - 1
+        
+        # 从当前位置到目标路径点的距离
+        for i in range(self.current_path_index, target_path_index + 1):
+            if i < len(self.route.path_points):
+                next_point = self.route.path_points[i]
+                segment_distance = math.hypot(next_point[0] - current_x, next_point[1] - current_y)
+                total_distance += segment_distance
+                current_x, current_y = next_point[0], next_point[1]
+        
+        return total_distance
+
+    def _reverse_route(self):
+        """反转路线方向"""
+        # 反转站点和路径点列表
+        self.route.stops.reverse()
+        self.route.path_points.reverse()
+        self.route.direction *= -1
+
+        # 重置状态以从新的起点开始
+        self.current_path_index = 0
+        self.current_stop_index = -1
+        self.progress_to_next = 0.0
+        self.target_stop_index = -1
+
+
+    def _arrive_at_stop(self, stop_index: int):
+        """到达站点"""
+        self.current_stop_index = stop_index
+        self.state = BusState.STOPPED
+        self.stop_start_time = self.clock.now_sim()
+
+        # 瞬移到站点位置
+        stop = self.route.stops[stop_index]
+        self.x = stop.x
+        self.y = stop.y
+
+        # 重置目标站点
+        self.target_stop_index = -1
+        self.departure_time = 0.0
+        self.arrival_time = 0.0
+
+        # 确保路径点索引指向正确的站点位置（奇数位置）
+        expected_path_index = stop_index * 2 + 1
+        if expected_path_index < len(self.route.path_points):
+            self.current_path_index = expected_path_index
+
+        # print(f"Bus {self.id} arrived at stop {stop.name or stop.id}")
+
+    def _depart_from_stop(self):
+        """从站点出发"""
+        self.state = BusState.MOVING
+        
+        # 设置下一个站点为目标
+        next_stop_index = self.current_stop_index + 1
+        if next_stop_index < len(self.route.stops):
+            self._set_target_stop(next_stop_index, self.clock.now_sim())
+        else:
+            # 到达路线终点，准备掉头
+            self._reverse_route()
+            if self.route.stops:
+                self._set_target_stop(0, self.clock.now_sim())
+
+        # print(f"Bus {self.id} departed from stop {self.route.stops[self.current_stop_index].name or self.route.stops[self.current_stop_index].id}")
+
+    def get_next_stop(self) -> Optional[BusStop]:
+        """获取下一个站点"""
+        if self.state == BusState.MOVING and self.target_stop_index >= 0:
+            return self.route.stops[self.target_stop_index]
+        elif not self.route.stops or self.current_stop_index + 1 >= len(self.route.stops):
+            return None
+        else:
+            return self.route.stops[self.current_stop_index + 1]
+
+    def get_current_stop(self) -> Optional[BusStop]:
+        """获取当前站点"""
+        if not self.route.stops or self.current_stop_index >= len(self.route.stops):
+            return None
+        return self.route.stops[self.current_stop_index]
+
+    def is_at_stop(self) -> bool:
+        """是否在站点停靠"""
+        return self.state == BusState.STOPPED
+
+    def board_passenger(self, passenger_id: str) -> bool:
+        """乘客上车"""
+        with self._lock:
+            if self.is_at_stop() and passenger_id not in self.passengers:
+                self.passengers.append(passenger_id)
+                # print(f"Passenger {passenger_id} boarded bus {self.id}")
+                return True
+            return False
+
+    def alight_passenger(self, passenger_id: str) -> bool:
+        """乘客下车"""
+        with self._lock:
+            if passenger_id in self.passengers:
+                self.passengers.remove(passenger_id)
+                # print(f"Passenger {passenger_id} alighted from bus {self.id}")
+                return True
+            return False
+
+    def _calculate_time_to_next_stop(self) -> Optional[float]:
+        """计算到达下一站的时间（秒）"""
+        if self.state == BusState.MOVING and self.target_stop_index >= 0:
+            # 使用预计算的到达时间
+            now = self.clock.now_sim()
+            remaining_time = self.arrival_time - now
+            return max(0.0, remaining_time)
+        elif not self.route.stops or self.state != BusState.MOVING:
+            return None
+
+        next_stop = self.get_next_stop()
+        if not next_stop:
+            return None
+
+        # 计算到下一站的距离
+        distance_cm = math.hypot(next_stop.x - self.x, next_stop.y - self.y)
+
+        if distance_cm > 0 and self.route.speed_cm_s > 0:
+            return distance_cm / self.route.speed_cm_s
+
+        return None
+
+    def _get_remaining_stop_time(self) -> Optional[float]:
+        """获取在当前站点的剩余停靠时间（秒）"""
+        if self.state != BusState.STOPPED:
+            return None
+
+        current_stop = self.get_current_stop()
+        if not current_stop:
+            return None
+
+        now = self.clock.now_sim()
+        elapsed_time = now - self.stop_start_time
+        remaining_time = current_stop.wait_time_s - elapsed_time
+
+        # 返回剩余时间，如果已经超时则返回0
+        return max(0.0, remaining_time)
+
+    def get_status_text(self) -> str:
+        """获取状态文本"""
+        status_parts = [f"Bus {self.id}"]
+        
+        # 添加路线名称
+        status_parts.append(f"route: {self.route.name}")
+
+        if self.state == BusState.STOPPED:
+            stop = self.get_current_stop()
+            stop_name = stop.name if stop else "None"
+            status_parts.append(f"stopped at {stop_name}")
+
+            # 添加剩余停靠时间
+            remaining_time = self._get_remaining_stop_time()
+            if remaining_time is not None:
+                status_parts.append(f"departing in: {remaining_time:.1f}s")
+
+        elif self.state == BusState.MOVING:
+            next_stop = self.get_next_stop()
+            next_name = next_stop.name if next_stop else "None"
+            status_parts.append(f"moving to {next_name}")
+
+            # 添加到达时间
+            time_to_next = self._calculate_time_to_next_stop()
+            if time_to_next is not None:
+                status_parts.append(f"ETA: {time_to_next:.1f}s")
+
+        else:
+            status_parts.append(f"state: {self.state.value}")
+
+        # status_parts.append(f"passengers: {len(self.passengers)}")
+        # status_parts.append(f"pos: ({self.x/100:.1f}m, {self.y/100:.1f}m)")
+
+        return " | ".join(status_parts)

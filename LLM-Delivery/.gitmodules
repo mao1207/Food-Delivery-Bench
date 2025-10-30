@@ -1,0 +1,7 @@
+[submodule "UE_llm_reasoners"]
+    path = UE_llm_reasoners
+    url = https://github.com/KoeYe/UE-llm-reasoners.git
+
+[submodule "SCAI-CityNav"]
+    path = SCAI-CityNav
+    url = https://github.com/yanzhuang12/SCAI-CityNav.git
