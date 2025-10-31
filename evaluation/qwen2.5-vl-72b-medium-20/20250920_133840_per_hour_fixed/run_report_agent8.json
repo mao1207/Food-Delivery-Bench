@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "agent_id": "8",
+    "model": "qwen/qwen2.5-vl-72b-instruct",
+    "lifecycle_hours": 2.0,
+    "started_sim_s": 93.27900000000227,
+    "ended_sim_s": 8957.294999999998,
+    "active_elapsed_s": 7204.679999999993,
+    "active_hours": 2.001299999999998,
+    "wall_finished_ts": 1758403706.0325406
+  },
+  "money": {
+    "totals": {
+      "initial_earnings": 100.0,
+      "current_balance": 80.0,
+      "net_growth": -20.0,
+      "orders_income": 0.0,
+      "help_income": 0.0,
+      "expense_total": 20.0,
+      "base_wage": 0.0,
+      "bonus": 0.0,
+      "help_expense": 0.0,
+      "expense_breakdown": {
+        "purchases": 0.0,
+        "charging": 0.0,
+        "rental": 0.0,
+        "hospital": 20.0,
+        "help_expense": 0.0
+      },
+      "advances": {
+        "out": 0.0,
+        "returned": 0.0,
+        "net": 0.0
+      },
+      "observed_agent_balance_end": 80.0
+    },
+    "per_hour": {
+      "net_growth": -10.0,
+      "orders_income": 0.0,
+      "help_income": 0.0,
+      "expense_total": 10.0,
+      "base_wage": 0.0,
+      "bonus": 0.0,
+      "initial_earnings": 50.0,
+      "current_balance": 40.0,
+      "help_expense": 0.0,
+      "observed_agent_balance_end": 40.0
+    },
+    "details": {
+      "purchases": [],
+      "charging": [],
+      "rental": [],
+      "hospital": [
+        {
+          "ts_sim": 2298.1379999999954,
+          "fee": 5.0
+        },
+        {
+          "ts_sim": 4297.5,
+          "fee": 5.0
+        },
+        {
+          "ts_sim": 5925.842999999997,
+          "fee": 5.0
+        },
+        {
+          "ts_sim": 7545.75,
+          "fee": 5.0
+        }
+      ],
+      "help_income": [],
+      "help_expense": [],
+      "advance_out": [],
+      "advance_return": []
+    }
+  },
+  "orders": {
+    "completed_count": 0,
+    "timeout_count": 0,
+    "avg_stars": 0.0,
+    "avg_food_stars": 0.0,
+    "temp_ok_rate": 0.0,
+    "odor_ok_rate": 0.0,
+    "damage_ok_rate": 0.0,
+    "method_success_rate": 0.0,
+    "total_active_time_s": 0.0,
+    "avg_time_per_order_s": 0.0,
+    "details": []
+  },
+  "activity": {
+    "active_time_ratio": 0.0,
+    "orders_per_hour": 0.0,
+    "avg_order_time_s": 0.0,
+    "mode_time_s": {
+      "e-scooter": 533.015999999996,
+      "drag_scooter": 6671.663999999997
+    },
+    "mode_time_ratio": {
+      "e-scooter": 0.07398191175735723,
+      "drag_scooter": 0.9260180882426428
+    }
+  },
+  "interruptions": {
+    "scooter_depleted": 1,
+    "hospital_rescue": 4,
+    "rent_insufficient": 0,
+    "charge_insufficient": 0
+  },
+  "social": {
+    "help_posted": 0,
+    "help_accepted": 0,
+    "help_given": 0,
+    "help_received": 0
+  },
+  "capability_buckets": {
+    "high_level_planning": {
+      "active_time_ratio": 0.0,
+      "orders_per_hour": 0.0,
+      "avg_order_time_s": 0.0,
+      "scooter_depleted_events": 1,
+      "hospital_rescue_times": 4,
+      "rent_insufficient_times": 0,
+      "charge_insufficient_times": 0
+    },
+    "common_sense_reasoning": {
+      "temp_ok_rate": 0.0,
+      "odor_ok_rate": 0.0,
+      "damage_ok_rate": 0.0,
+      "method_success_rate": 0.0
+    },
+    "social_reasoning": {
+      "help_posted": 0,
+      "help_accepted": 0,
+      "help_given": 0,
+      "help_received": 0,
+      "say": 0
+    }
+  },
+  "actions": {
+    "view_orders": {
+      "attempts": 2,
+      "successes": 2,
+      "success_rate": 1.0
+    },
+    "accept_order": {
+      "attempts": 2,
+      "successes": 1,
+      "success_rate": 0.5
+    },
+    "move_to": {
+      "attempts": 8,
+      "successes": 1,
+      "success_rate": 0.125
+    },
+    "pickup": {
+      "attempts": 1,
+      "successes": 1,
+      "success_rate": 1.0
+    },
+    "place_food_in_bag": {
+      "attempts": 1,
+      "successes": 1,
+      "success_rate": 1.0
+    }
+  },
+  "vlm": {
+    "total_calls": 18,
+    "successes": 14,
+    "parse_failures": 4,
+    "retries": 4,
+    "success_rate": 0.7777777777777778,
+    "parse_success_rate": 0.7777777777777778
+  }
+}

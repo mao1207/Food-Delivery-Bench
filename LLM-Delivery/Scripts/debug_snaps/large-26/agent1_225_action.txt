@@ -1,0 +1,1 @@
+BUY(item_id="escooter_battery_pack", qty=2)

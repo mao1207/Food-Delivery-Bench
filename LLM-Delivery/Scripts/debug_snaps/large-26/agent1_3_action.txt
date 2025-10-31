@@ -1,0 +1,1 @@
+BUY(item_id="energy_drink", qty=3)

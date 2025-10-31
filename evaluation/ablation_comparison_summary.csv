@@ -1,0 +1,12 @@
+Metric,Base_Setting,Single_Setting,Improvement_%
+Per Hour Net Growth,6.638,20.571,209.9%
+Per Hour Orders Income,15.388,30.111,95.7%
+Per Hour Expense Total,8.750,9.539,9.0%
+On Time Order Rate,0.113,0.333,195.0%
+Completed Orders Per Agent,5.000,4.000,-20.0%
+Timeout Orders Per Agent,4.000,2.000,-50.0%
+Stars,3.438,4.000,16.4%
+Food Stars,3.900,3.750,-3.8%
+Violation Rate,0.867,0.750,-13.5%
+VLM Success Rate,0.984,1.000,1.6%
+Active Hours Per Agent,2.019,1.572,-22.1%

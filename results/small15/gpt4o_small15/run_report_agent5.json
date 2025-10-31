@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "agent_id": "5",
+    "model": "gpt-4o",
+    "lifecycle_hours": 2.0,
+    "started_sim_s": 25.592999999877065,
+    "ended_sim_s": 6501.140999999887,
+    "active_elapsed_s": 1265.6160000000964,
+    "active_hours": 0.3515600000000268,
+    "wall_finished_ts": 1758609323.060153
+  },
+  "money": {
+    "totals": {
+      "initial_earnings": 100.0,
+      "current_balance": 111.2537202789586,
+      "net_growth": 11.253720278958596,
+      "orders_income": 15.727945278959279,
+      "help_income": 0.0,
+      "expense_total": 4.474225000001027,
+      "base_wage": 11.227945278959279,
+      "bonus": 4.5,
+      "help_expense": 0.0,
+      "expense_breakdown": {
+        "purchases": 0.0,
+        "charging": 4.474225000001027,
+        "rental": 0.0,
+        "hospital": 0.0,
+        "help_expense": 0.0
+      },
+      "advances": {
+        "out": 0.0,
+        "returned": 0.0,
+        "net": 0.0
+      },
+      "observed_agent_balance_end": 111.2537202789586
+    },
+    "per_hour": {
+      "net_growth": 32.01080975923808,
+      "orders_income": 44.73758470519422,
+      "help_income": 0.0,
+      "expense_total": 12.726774945957123,
+      "base_wage": 31.9374936823257,
+      "bonus": 12.80009102286852,
+      "initial_earnings": 284.446467174856,
+      "current_balance": 316.45727693409407,
+      "help_expense": 0.0,
+      "observed_agent_balance_end": 316.45727693409407
+    },
+    "details": {
+      "purchases": [],
+      "charging": [
+        {
+          "ts_sim": 6501.140999999887,
+          "which": "own",
+          "req_id": null,
+          "delta_pct": 89.4845000000205,
+          "cost": 4.474225000001027,
+          "start_ts": 1360.967999999877,
+          "end_ts": 6501.140999999887,
+          "reason": "lifecycle_end",
+          "aggregated": true,
+          "target_pct": null
+        }
+      ],
+      "rental": [],
+      "hospital": [],
+      "help_income": [],
+      "help_expense": [],
+      "advance_out": [],
+      "advance_return": []
+    }
+  },
+  "orders": {
+    "completed_count": 3,
+    "timeout_count": 2,
+    "avg_stars": 4.0,
+    "avg_food_stars": 4.333333333333333,
+    "temp_ok_rate": 0.3333333333333333,
+    "odor_ok_rate": 0.6666666666666666,
+    "damage_ok_rate": 1.0,
+    "method_success_rate": 1.0,
+    "total_active_time_s": 1521.408000000345,
+    "avg_time_per_order_s": 507.136000000115,
+    "details": [
+      {
+        "id": 9,
+        "duration_s": 365.4360000001034,
+        "on_time": true,
+        "temp_ok_all": true,
+        "odor_ok_all": true,
+        "damage_ok_all": true,
+        "stars": {
+          "overall": 5,
+          "time": 4,
+          "food": 5,
+          "method": 5
+        },
+        "earnings": 4.150390254593441,
+        "bonus_extra": 3.0,
+        "paid_total": 7.150390254593441,
+        "pickup": "7th road (right)",
+        "dropoff": "14th road (left)",
+        "allowed_delivery_methods": [],
+        "delivery_method": "leave_at_door"
+      },
+      {
+        "id": 5,
+        "duration_s": 540.8850000001257,
+        "on_time": false,
+        "temp_ok_all": false,
+        "odor_ok_all": true,
+        "damage_ok_all": true,
+        "stars": {
+          "overall": 4,
+          "time": 2,
+          "food": 4,
+          "method": 5
+        },
+        "earnings": 3.53988277381614,
+        "bonus_extra": 1.5,
+        "paid_total": 5.0398827738161405,
+        "pickup": "12th road (right)",
+        "dropoff": "9th road (left)",
+        "allowed_delivery_methods": [],
+        "delivery_method": "leave_at_door"
+      },
+      {
+        "id": 7,
+        "duration_s": 615.087000000116,
+        "on_time": false,
+        "temp_ok_all": false,
+        "odor_ok_all": false,
+        "damage_ok_all": true,
+        "stars": {
+          "overall": 3,
+          "time": 1,
+          "food": 4,
+          "method": 5
+        },
+        "earnings": 3.5376722505496963,
+        "bonus_extra": 0.0,
+        "paid_total": 3.5376722505496963,
+        "pickup": "12th road (right)",
+        "dropoff": "3rd road (left)",
+        "allowed_delivery_methods": [],
+        "delivery_method": "leave_at_door"
+      }
+    ]
+  },
+  "activity": {
+    "active_time_ratio": 1.2021086964768375,
+    "orders_per_hour": 8.53339401524568,
+    "avg_order_time_s": 507.136000000115,
+    "mode_time_s": {
+      "e-scooter": 767.2410000000964,
+      "walk": 498.375
+    },
+    "mode_time_ratio": {
+      "e-scooter": 0.6062194220048087,
+      "walk": 0.3937805779951913
+    }
+  },
+  "interruptions": {
+    "scooter_depleted": 0,
+    "hospital_rescue": 0,
+    "rent_insufficient": 0,
+    "charge_insufficient": 0
+  },
+  "social": {
+    "help_posted": 0,
+    "help_accepted": 0,
+    "help_given": 0,
+    "help_received": 0
+  },
+  "capability_buckets": {
+    "high_level_planning": {
+      "active_time_ratio": 1.2021086964768375,
+      "orders_per_hour": 8.53339401524568,
+      "avg_order_time_s": 507.136000000115,
+      "scooter_depleted_events": 0,
+      "hospital_rescue_times": 0,
+      "rent_insufficient_times": 0,
+      "charge_insufficient_times": 0
+    },
+    "common_sense_reasoning": {
+      "temp_ok_rate": 0.3333333333333333,
+      "odor_ok_rate": 0.6666666666666666,
+      "damage_ok_rate": 1.0,
+      "method_success_rate": 1.0
+    },
+    "social_reasoning": {
+      "help_posted": 0,
+      "help_accepted": 0,
+      "help_given": 0,
+      "help_received": 0,
+      "say": 0
+    }
+  },
+  "actions": {
+    "view_orders": {
+      "attempts": 3,
+      "successes": 3,
+      "success_rate": 1.0
+    },
+    "accept_order": {
+      "attempts": 3,
+      "successes": 2,
+      "success_rate": 0.6666666666666666
+    },
+    "move_to": {
+      "attempts": 13,
+      "successes": 13,
+      "success_rate": 1.0
+    },
+    "wait": {
+      "attempts": 2,
+      "successes": 2,
+      "success_rate": 1.0
+    },
+    "pickup": {
+      "attempts": 3,
+      "successes": 3,
+      "success_rate": 1.0
+    },
+    "place_food_in_bag": {
+      "attempts": 3,
+      "successes": 3,
+      "success_rate": 1.0
+    },
+    "drop_off": {
+      "attempts": 96,
+      "successes": 3,
+      "success_rate": 0.03125
+    },
+    "charge_escooter": {
+      "attempts": 1,
+      "successes": 1,
+      "success_rate": 1.0
+    },
+    "switch_transport": {
+      "attempts": 1,
+      "successes": 1,
+      "success_rate": 1.0
+    },
+    "step_forward": {
+      "attempts": 75,
+      "successes": 75,
+      "success_rate": 1.0
+    }
+  },
+  "vlm": {
+    "total_calls": 200,
+    "successes": 200,
+    "parse_failures": 0,
+    "retries": 0,
+    "success_rate": 1.0,
+    "parse_success_rate": 1.0
+  }
+}

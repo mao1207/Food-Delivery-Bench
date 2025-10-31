@@ -394,7 +394,7 @@ class DeliveryMan:
     def _pace_scale(self) -> float:
         return float(self.pace_scales.get(self.pace_state, 1.0))
 
-    def _export_vlm_images_debug_once(self, save_dir: str = "debug_snaps/medium-20") -> List[str]:
+    def _export_vlm_images_debug_once(self, save_dir: str = "debug_snaps/medium-22") -> List[str]:
         imgs = self.vlm_collect_images()  # 全是 PNG bytes 或 None
         os.makedirs(save_dir, exist_ok=True)
         self.save_dir = save_dir
