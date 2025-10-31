@@ -13,7 +13,7 @@
     "car": 0.008,
     "bus": 0.006
   },
-  "scooter_batt_decay_pct_per_m": 0.02,
+  "scooter_batt_decay_pct_per_m": 0.04,
 
   "initial_earnings": 100,
   "energy_pct_max": 100,
