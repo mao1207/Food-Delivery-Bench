@@ -221,20 +221,60 @@ class InsulatedBag:
                 Ti_new = Ti0 + alpha * (Ta0 - Ti0)
                 it.temp_c = Ti_new
 
+    def _item_key(self, it):
+        """
+        生成稳定键：(order_id, item_id)；尽量兜底不同字段名。
+        若 it.order 是对象，也能取到 id。
+        """
+        # 订单 id
+        oid = getattr(it, "order_id", getattr(it, "oid", None))
+        if oid is None:
+            ord_obj = getattr(it, "order", None)
+            if ord_obj is not None:
+                oid = getattr(ord_obj, "id", getattr(ord_obj, "oid", None))
+        # 物品 id（尽量取唯一字段；没有就退化到 name）
+        iid = getattr(it, "id", getattr(it, "item_id", getattr(it, "name", None)))
+        return (oid, iid)
+
     def remove_items(self, items: List[Any]) -> None:
-        # 用对象 id 做身份匹配，避免不可哈希/等价关系的坑
-        target_ids = {id(obj) for obj in (items or [])}
-        if not target_ids:
+        """
+        支持三种命中方式：
+        1) 同一对象（id 相同）
+        2) == 等价（万一实现了 __eq__）
+        3) 稳定键 (order_id, item_id)
+        也支持传入键元组 [(oid, iid), ...] 直接删除。
+        """
+        if not items:
             return
-        for i, comp in enumerate(list(self._comps)):
+
+        # 对象身份集合（O(1)）
+        obj_id_set = {id(x) for x in items if not isinstance(x, tuple)}
+
+        # 键集合
+        key_set = set()
+        for it in items:
+            if isinstance(it, tuple) and len(it) >= 2:
+                key_set.add((it[0], it[1]))
+            else:
+                key_set.add(self._item_key(it))
+
+        # 逐隔层过滤
+        for i, comp in enumerate(self._comps):
             if not comp:
                 continue
-            new_comp = [obj for obj in comp if id(obj) not in target_ids]
-            if len(new_comp) != len(comp):
-                self._comps[i] = new_comp
-                if not new_comp:
-                    # 清空后重置为室温
-                    self._comp_temp_c[i] = float(self.ambient_temp_c)
+            kept = []
+            for x in comp:
+                same_obj = (id(x) in obj_id_set)
+                same_key = (self._item_key(x) in key_set)
+                same_eq  = (x in items) if not same_obj else True
+                if same_obj or same_key or same_eq:
+                    continue
+                kept.append(x)
+            self._comps[i] = kept
+            if not kept:
+                self._comp_temp_c[i] = float(self.ambient_temp_c)  # 清空后回室温
+
+
 
     def tick_odor(self, delta_s: float) -> None:
         """

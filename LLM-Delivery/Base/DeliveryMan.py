@@ -3235,100 +3235,171 @@ class DeliveryMan:
         self._finish_action(success=True)
 
 
-
     def _handle_place_food_in_bag(self, act: DMAction, _allow_interrupt: bool):
         """
         将 _pending_food_by_order 的食物按 bag_cmd 放入保温袋（支持多订单一次性放）。
-        data = {"bag_cmd": "..."}  # 必填（可以是单行，包含多个 "order <id>:" 片段）
-        
-        事务语义：
-        - 任意一步失败 -> 回滚到放置前状态，报错给 VLM，不抛异常，下一步仍提示放置。
-        - 只处理 bag_cmd 中明确出现的订单，其它待放订单保持原样。
+        关键点：先移动已有物（A.2 等），再对“裸数字”做全局不冲突映射并加入；
+        加入前为物品补充稳定键字段（order_id/oid/item_id），便于 dropoff 稳定删除。
         """
+        import re, copy
+        from typing import Dict, Any
+
+        # ---------- helpers ----------
+        def _extract_local_indices(cmd: str, max_n: int):
+            # 仅提取裸数字 1..max_n；跳过 A.2 / B.10 等带层点号
+            nums = set()
+            for m in re.finditer(r'(?<![A-Za-z]\.)\b([1-9]\d*)\b', cmd):
+                i = int(m.group(1))
+                if 1 <= i <= max_n:
+                    nums.add(i)
+            return nums
+
+        def _remap_cmd_indices(cmd: str, base: int, count: int):
+            # 只重写裸数字 1..count -> base..base+count-1；不改动 A.2 这类
+            mapping = {i: base + (i - 1) for i in range(1, count + 1)}
+            def repl(m):
+                i = int(m.group(1))
+                return str(mapping.get(i, i))
+            new_cmd = re.sub(r'(?<![A-Za-z]\.)\b([1-9]\d*)\b', repl, cmd)
+            return new_cmd, mapping
+
+        def _next_global_base(bag, need: int):
+            # 优先用 bag.max_index()；否则用 _bag_index_counter
+            if hasattr(bag, "max_index") and callable(getattr(bag, "max_index")):
+                return int(bag.max_index()) + 1
+            if not hasattr(self, "_bag_index_counter"):
+                approx = 0
+                if hasattr(bag, "size") and callable(getattr(bag, "size")):
+                    approx = int(bag.size())
+                self._bag_index_counter = approx
+            base = self._bag_index_counter + 1
+            self._bag_index_counter += max(int(need), 1)
+            return base
+
+        # ---------- main ----------
         self.vlm_clear_ephemeral()
         spec_text = (act.data.get("bag_cmd") or "").strip()
         if not spec_text:
             self.vlm_add_error("place_food_in_bag failed: need bag_cmd")
-            self._finish_action(success=False)
-            return
+            self._finish_action(success=False); return
         if not self._pending_food_by_order:
-            self._finish_action(success=True)
-            return
-
+            self._finish_action(success=True); return
         if not self.insulated_bag:
             self.insulated_bag = InsulatedBag()
 
-        # --- 解析：把单条 bag_cmd 中每个 "order <id>:" 独立切片 ---
-        # 例： "order 2: 1,2 -> A; order 3: 1,2,3,4 -> B"
-        # re.split 会得到 ["", "2", "1,2 -> A; ", "3", "1,2,3,4 -> B"]
+        # 解析 per_order_cmd
         tokens = re.split(r'(?i)order\s+(\d+)\s*:\s*', spec_text)
         per_order_cmd: Dict[int, str] = {}
         if len(tokens) >= 3:
             # tokens: [prefix, oid1, tail1, oid2, tail2, ...]
             for i in range(1, len(tokens), 2):
                 try:
-                    oid = int(tokens[i])
-                    tail = tokens[i + 1].strip()
+                    oid = int(tokens[i]); tail = tokens[i + 1].strip()
                 except Exception:
                     continue
                 if tail:
                     per_order_cmd[oid] = tail
         else:
-            # 没写 "order <id>:" 的简写：只在"仅有一个待放订单"时允许
             if len(self._pending_food_by_order) == 1:
                 only_oid = next(iter(self._pending_food_by_order.keys()))
                 per_order_cmd[int(only_oid)] = spec_text
             else:
-                self.vlm_add_error(
-                    "place_food_in_bag failed: multiple pending orders, please prefix each line with 'order <id>:'"
-                )
+                self.vlm_add_error("place_food_in_bag failed: multiple pending orders, please prefix each line with 'order <id>:'")
                 self._force_place_food_now = True
                 self.vlm_ephemeral["bag_hint"] = self._build_bag_place_hint()
-                self._finish_action(success=False)
-                return
+                self._finish_action(success=False); return
 
-        # 没有任何命中的订单 id
         hit_oids = [oid for oid in per_order_cmd.keys() if oid in self._pending_food_by_order]
         if not hit_oids:
             self.vlm_add_error("place_food_in_bag failed: no matching pending orders for provided bag_cmd")
             self._force_place_food_now = True
             self.vlm_ephemeral["bag_hint"] = self._build_bag_place_hint()
-            self._finish_action(success=False)
-            return
+            self._finish_action(success=False); return
 
-        # --- 事务：在临时副本 tmp_bag 上尝试操作，全部成功后一次性提交 ---
+        # 事务
         bag_before = copy.deepcopy(self.insulated_bag)
         pending_before = {k: list(v) for k, v in self._pending_food_by_order.items()}
 
         try:
             tmp_bag = copy.deepcopy(self.insulated_bag)
+            actually_placed_by_oid: Dict[int, list] = {}
+
             for oid in hit_oids:
-                items = self._pending_food_by_order.get(int(oid)) or []
+                items = list(self._pending_food_by_order.get(int(oid)) or [])
                 if not items:
                     continue
-                order_cmd = per_order_cmd[int(oid)]
-                # 针对该订单重新编号 1..N
-                items_map = {i + 1: items[i] for i in range(len(items))}
-                # 先按命令调整已有物品布局，再把"待放物"放入
-                tmp_bag.move_items(order_cmd)
-                tmp_bag.add_items(order_cmd, items_map)
 
-            # 全部成功 -> 提交：替换保温袋对象，清理对应订单的 pending 队列
+                order_cmd = per_order_cmd[int(oid)]
+                n = len(items)
+
+                # (1) 先移动包内已有物（A.2 / B.1 等）
+                tmp_bag.move_items(order_cmd)
+
+                # (2) 处理新增（裸数字）
+                local_refs = _extract_local_indices(order_cmd, n)
+                if not local_refs:
+                    continue
+
+                base = _next_global_base(tmp_bag, need=len(local_refs))
+                new_cmd, idx_map = _remap_cmd_indices(order_cmd, base, n)
+
+                # 构建 items_map，并补齐稳定键字段
+                items_map: Dict[int, Any] = {}
+                picked: list = []
+                oid_int = int(oid)
+                for i in sorted(local_refs):
+                    it = items[i - 1]
+
+                    # 补齐稳定键：order_id/oid
+                    if getattr(it, "order_id", None) != oid_int:
+                        try: setattr(it, "order_id", oid_int)
+                        except Exception: pass
+                    if getattr(it, "oid", None) != oid_int:
+                        try: setattr(it, "oid", oid_int)
+                        except Exception: pass
+                    # 缺唯一 item id 时兜底
+                    if (getattr(it, "id", None) is None) and (getattr(it, "item_id", None) is None):
+                        try: setattr(it, "item_id", i)
+                        except Exception: pass
+                    # 可选：额外放一份 _bag_key（不影响 remove，但便于 debug）
+                    try:
+                        iid_val = getattr(it, "id", getattr(it, "item_id", getattr(it, "name", None)))
+                        setattr(it, "_bag_key", (oid_int, iid_val))
+                    except Exception:
+                        pass
+
+                    items_map[idx_map[i]] = it
+                    picked.append(it)
+
+                # 只 add（new_cmd 的右侧已指定隔层）
+                tmp_bag.add_items(new_cmd, items_map)
+                actually_placed_by_oid[int(oid)] = picked
+
+            # 提交
             self.insulated_bag = tmp_bag
+
+            # 精确更新 pending（只移除本次确实加入的）
             for oid in hit_oids:
-                self._pending_food_by_order.pop(int(oid), None)
+                placed_list = actually_placed_by_oid.get(oid, [])
+                if not placed_list:
+                    continue
+                old_pending = list(self._pending_food_by_order.get(int(oid)) or [])
+                new_pending = [x for x in old_pending if x not in placed_list]
+                if new_pending:
+                    self._pending_food_by_order[int(oid)] = new_pending
+                else:
+                    self._pending_food_by_order.pop(int(oid), None)
 
         except Exception as e:
-            # 失败 -> 回滚到放置前状态；报错给 VLM；下一步继续提示放置
+            # 回滚
             self.insulated_bag = bag_before
             self._pending_food_by_order = pending_before
             self.vlm_add_error(f"place_food_in_bag failed: {e}")
             self._force_place_food_now = True
             self.vlm_ephemeral["bag_hint"] = self._build_bag_place_hint()
-            self._finish_action(success=False)
-            return
+            self._finish_action(success=False); return
 
-        # --- 成功后的善后：如果还有待放项，则继续强制放置；否则收起提示 ---
+        # 善后
         if self._pending_food_by_order:
             self._force_place_food_now = True
             self.vlm_ephemeral["bag_hint"] = self._build_bag_place_hint()
