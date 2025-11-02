@@ -1,1 +1,1 @@
-DROP_OFF(oid=17, method="leave_at_door")
+MOVE(-221.87m, 364.32m)

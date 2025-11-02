@@ -1,1 +1,1 @@
-DROP_OFF(oid=5, method="leave_at_door")
+USE_BATTERY_PACK()

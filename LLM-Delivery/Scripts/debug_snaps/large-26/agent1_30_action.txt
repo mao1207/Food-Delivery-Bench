@@ -1,1 +1,1 @@
-PLACE_FOOD_IN_BAG(bag_cmd="order 8: 1,2 -> A; 3,4 -> B")
+MOVE(-222.79m, 323.94m)

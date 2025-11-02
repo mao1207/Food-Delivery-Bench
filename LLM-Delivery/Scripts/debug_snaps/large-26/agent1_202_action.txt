@@ -1,1 +1,1 @@
-PICKUP(orders=[40, 44, 52, 56, 58, 59])
+BUY(item_id="escooter_battery_pack", qty=2)

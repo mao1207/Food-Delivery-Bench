@@ -1,1 +1,1 @@
-PICKUP(orders=[31, 32, 39, 46])
+VIEW_ORDERS()

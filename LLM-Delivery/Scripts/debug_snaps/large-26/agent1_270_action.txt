@@ -1,1 +1,0 @@
-DROP_OFF(oid=76, method="leave_at_door")

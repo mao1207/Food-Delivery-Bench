@@ -1,1 +1,1 @@
-PICKUP(orders=[50, 51, 57])
+MOVE(68.49m, 24.07m)

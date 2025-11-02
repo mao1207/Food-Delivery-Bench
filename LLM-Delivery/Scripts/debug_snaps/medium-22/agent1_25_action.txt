@@ -1,0 +1,1 @@
+PLACE_FOOD_IN_BAG(bag_cmd="order 0: 1 -> A; 2,3 -> B")

@@ -1,1 +1,0 @@
-PICKUP(orders=[64, 69])

@@ -1,0 +1,262 @@
+### agent_state
+You are Agent 1. There are 7 delivery agents in total in this city. Your current transport mode is e-scooter, at (177.43m, -496.36m). Your speed is ~6.0 m/s, energy is 30%. Your current pace is normal (×1.00). Earnings is $122.38. Active orders: 33, 37, 38, 34, 40, 43, 44, 45, 46, 42, 47, 49, 48, 50. Carrying: 37, 40. Rest energy recovery rate is +10.0%/min. Inventory: energy_drink x3, escooter_battery_pack x4. Scooter: usable, batt 41%, range 1019.8 m, not parked.
+### store_catalog
+Available items & effects
+id                     name                   price   function
+--------------------------------------------------------------
+energy_drink           Energy Drink           $6.00   Instantly restores half of your personal energy.
+escooter_battery_pack  EScooter Battery Pack  $10.00  Instantly fully recharges your e-scooter battery, but you must be near the scooter.
+heat_pack              Heat Pack              $3.00   Instantly sets a selected insulated-bag compartment to 60°C; consumes one pack.
+ice_pack               Ice Pack               $3.00   Instantly sets a selected insulated-bag compartment to 0°C; consumes one pack.
+### active_orders
+You have accepted the following active orders:
+
+[Order #33]
+  Pickup : (-268.64m, 175.38m) | road: 14th road (left)
+  Dropoff: (175.83m, 175.79m) | road: 20th road (right)
+  OVERTIME  : 15 min — Deliver ASAP!
+  $$     : $5.33
+  Status : Ready for pickup
+------------------------------------------------
+[Order #37]
+  Pickup : (-288.53m, -16.58m) | road: 4th road (left)
+  Dropoff: (176.20m, -496.65m) | road: 15th road (right)
+  OVERTIME  : 5 min — Deliver ASAP!
+  $$     : $8.66
+  Status : Picked up, waiting for delivery
+------------------------------------------------
+[Order #38]
+  Pickup : (-268.64m, 175.38m) | road: 14th road (left)
+  Dropoff: (-51.95m, 375.30m) | road: 19th road (right)
+  OVERTIME  : 15 min — Deliver ASAP!
+  $$     : $3.53
+  Status : Ready for pickup
+------------------------------------------------
+[Order #34]
+  Pickup : (-522.59m, 221.25m) | road: 22nd road (right)
+  Dropoff: (-363.09m, -221.87m) | road: 11th road (left)
+  OVERTIME  : 5 min — Deliver ASAP!
+  $$     : $5.06
+  Status : Ready for pickup
+  Note   : Please knock softly when you arrive
+------------------------------------------------
+[Order #40]
+  Pickup : (-522.59m, 221.25m) | road: 22nd road (right)
+  Dropoff: (-136.70m, 375.30m) | road: 19th road (right)
+  OVERTIME  : 3 min — Deliver ASAP!
+  $$     : $6.68
+  Status : Picked up, waiting for delivery
+  Note   : If I'm not home, leave it at the door
+------------------------------------------------
+[Order #43]
+  Pickup : (-175.96m, 66.78m) | road: 6th road (right)
+  Dropoff: (-175.32m, 340.85m) | road: 12th road (right)
+  OVERTIME  : 8 min — Deliver ASAP!
+  $$     : $3.38
+  Status : Ready for pickup
+------------------------------------------------
+[Order #44]
+  Pickup : (-522.59m, 221.25m) | road: 22nd road (right)
+  Dropoff: (224.48m, -546.56m) | road: 15th road (left)
+  Time Left : 10 min
+  $$     : $12.93
+  Status : Ready for pickup
+  Note   : Please call me when you arrive
+------------------------------------------------
+[Order #45]
+  Pickup : (-288.53m, -16.58m) | road: 4th road (left)
+  Dropoff: (-133.37m, 424.70m) | road: 19th road (left)
+  OVERTIME  : 1 min — Deliver ASAP!
+  $$     : $5.16
+  Status : Ready for pickup
+  Note   : I'm in a meeting, please don't disturb me during delivery
+------------------------------------------------
+[Order #46]
+  Pickup : (-424.45m, 53.15m) | road: 8th road (left)
+  Dropoff: (-175.32m, 363.31m) | road: 12th road (right)
+  OVERTIME  : 5 min — Deliver ASAP!
+  $$     : $6.81
+  Status : Ready for pickup
+------------------------------------------------
+[Order #42]
+  Pickup : (-48.93m, 423.87m) | road: 19th road (left)
+  Dropoff: (175.36m, -553.92m) | road: 15th road (right)
+  Time Left : 21 min
+  $$     : $16.74
+  Status : Food is still being prepared (~2 min)
+------------------------------------------------
+[Order #47]
+  Pickup : (-48.93m, 423.87m) | road: 19th road (left)
+  Dropoff: (99.19m, 224.21m) | road: 20th road (left)
+  Time Left : 1 min
+  $$     : $2.79
+  Status : Food is still being prepared (~3 min)
+  Note   : Baby is sleeping, please don't knock
+------------------------------------------------
+[Order #49]
+  Pickup : (-530.84m, -224.45m) | road: 17th road (left)
+  Dropoff: (-222.68m, 105.05m) | road: 6th road (left)
+  Time Left : 7 min
+  $$     : $6.19
+  Status : Food is still being prepared (~2 min)
+------------------------------------------------
+[Order #48]
+  Pickup : (-424.45m, 53.15m) | road: 8th road (left)
+  Dropoff: (-179.80m, -378.90m) | road: 10th road (left)
+  Time Left : 8 min
+  $$     : $8.97
+  Status : Ready for pickup
+  Note   : Please knock softly when you arrive
+------------------------------------------------
+[Order #50]
+  Pickup : (-288.53m, -16.58m) | road: 4th road (left)
+  Dropoff: (-423.62m, -154.99m) | road: 9th road (right)
+  Time Left : 2 min
+  $$     : $2.56
+  Status : Food is still being prepared (~1 min)
+  Note   : Please call me when you arrive
+### accepted_help
+(none)
+### posted_help
+(none)
+### pickables
+(none)
+### map_snapshot
+Agent position: (177.43m, -496.36m) • building 79 • 15th road (right)
+The following are nearby locations and POIs with their coordinates for your reference. You should decide where to move based on your current delivery needs.
+
+Next hops:
+N1: waypoint at (183.00m, -483.00m) • 18.9m • 15th road (right)
+N2: waypoint at (183.00m, -533.00m) • 42.2m • 15th road (right)
+
+Next intersections:
+S1: intersection at (183.00m, -417.00m) • 84.9m
+S2: intersection at (183.00m, -583.00m) • 92.2m
+
+All POIs by shortest-path distance:
+building 79 / drop off address of order 37: at (176.20m, -496.65m) • 7.1m 15th road (right)
+building 80 / drop off address of order 42: at (175.36m, -553.92m) • 65.2m 15th road (right)
+building 85 / drop off address of order 44: at (224.48m, -546.56m) • 164.6m 15th road (left)
+charging_station 1: at (212.00m, -362.16m) • 173.2m 7th road (left)
+charging_station 21: at (188.00m, -287.97m) • 213.4m 7th road (right)
+charging_station 2: at (188.00m, -108.84m) • 392.5m 3rd road (right)
+charging_station 19: at (188.00m, -88.29m) • 413.1m 3rd road (right)
+car_rental 2: at (220.10m, -58.41m) • 475.1m 3rd road (left)
+rest_area 1: at (198.25m, 24.50m) • 536.1m 1st road (left)
+charging_station 12: at (-73.76m, 12.00m) • 775.1m 2nd road (right)
+charging_station 20: at (-115.77m, 12.00m) • 817.1m 2nd road (right)
+car_rental 1: at (-132.39m, 23.99m) • 835.7m 2nd road (right)
+charging_station 3: at (-169.59m, 12.00m) • 870.9m 2nd road (right)
+charging_station 17: at (-212.00m, -36.69m) • 904.0m 5th road (right)
+restaurant 2 / pick up address of order 43: at (-175.96m, 66.78m) • 936.2m 6th road (right)
+restaurant 1 / pick up address of order 37 / pick up address of order 45 / pick up address of order 50: at (-288.53m, -16.58m) • 951.3m 4th road (left)
+charging_station 18: at (-296.18m, -12.00m) • 963.5m 4th road (left)
+charging_station 6: at (-212.00m, 72.12m) • 973.5m 6th road (left)
+bus_station 8: at (-192.00m, -143.02m) • 980.4m 5th road (left)
+bus_station 1: at (-208.00m, 86.09m) • 991.4m 6th road (left)
+building 35 / drop off address of order 49: at (-222.68m, 105.05m) • 1007.1m 6th road (left)
+store 1: at (-224.20m, -140.37m) • 1009.9m 5th road (right)
+charging_station 13: at (-342.93m, -12.00m) • 1010.3m 4th road (left)
+store 4: at (-177.29m, 251.55m) • 1119.6m 12th road (right)
+rest_area 2: at (-175.65m, -298.57m) • 1134.3m 10th road (left)
+charging_station 7: at (-267.11m, -212.00m) • 1134.5m 11th road (left)
+restaurant 4 / pick up address of order 33 / pick up address of order 38: at (-268.64m, 175.38m) • 1138.6m 14th road (left)
+restaurant 3 / pick up address of order 46 / pick up address of order 48: at (-424.45m, 53.15m) • 1157.0m 8th road (left)
+charging_station 15: at (-412.00m, 61.24m) • 1162.6m 8th road (left)
+bus_station 6: at (-408.00m, 59.07m) • 1164.4m 8th road (left)
+hospital 1: at (-176.65m, 302.72m) • 1171.4m 12th road (right)
+store 3: at (-375.65m, -141.59m) • 1177.3m 9th road (left)
+store 2: at (-379.57m, 113.94m) • 1179.7m 8th road (right)
+charging_station 4: at (-293.05m, 212.00m) • 1194.4m 14th road (right)
+bus_station 2: at (-40.19m, 192.00m) • 1197.2m 13th road (right)
+charging_station 5: at (-333.44m, 188.00m) • 1200.8m 14th road (left)
+charging_station 14: at (-212.00m, -334.22m) • 1201.6m 10th road (right)
+building 55 / drop off address of order 48: at (-179.80m, -378.90m) • 1210.5m 10th road (left)
+building 63 / drop off address of order 43: at (-175.32m, 340.85m) • 1210.9m 12th road (right)
+bus_station 7: at (-381.62m, -192.00m) • 1221.7m 11th road (right)
+charging_station 22: at (-388.00m, 156.51m) • 1223.9m 8th road (right)
+building 47 / drop off address of order 50: at (-423.62m, -154.99m) • 1224.0m 9th road (right)
+building 62 / drop off address of order 34: at (-363.09m, -221.87m) • 1230.3m 11th road (left)
+building 64 / drop off address of order 46: at (-175.32m, 363.31m) • 1233.4m 12th road (right)
+building 109 / drop off address of order 40: at (-136.70m, 375.30m) • 1299.4m 19th road (right)
+charging_station 10: at (-436.72m, -212.00m) • 1304.1m 17th road (left)
+bus_station 4: at (-247.41m, 392.00m) • 1318.8m 18th road (left)
+building 113 / drop off address of order 45: at (-133.37m, 424.70m) • 1336.7m 19th road (left)
+store 5: at (-423.66m, 243.06m) • 1346.1m 16th road (left)
+car_rental 3: at (-477.08m, 175.96m) • 1346.5m 22nd road (left)
+charging_station 8: at (-70.65m, 388.00m) • 1362.7m 19th road (right)
+rest_area 3: at (-106.35m, 424.57m) • 1363.6m 19th road (left)
+bus_station 5: at (-392.00m, 296.28m) • 1367.6m 16th road (right)
+building 120 / drop off address of order 47: at (99.19m, 224.21m) • 1368.8m 20th road (left)
+store 7: at (-508.57m, 174.70m) • 1379.2m 22nd road (left)
+charging_station 11: at (-50.92m, 388.00m) • 1382.4m 19th road (right)
+building 111 / drop off address of order 38: at (-51.95m, 375.30m) • 1384.1m 19th road (right)
+restaurant 5 / pick up address of order 49: at (-530.84m, -224.45m) • 1400.6m 17th road (left)
+building 118 / drop off address of order 33: at (175.83m, 175.79m) • 1411.4m 20th road (right)
+charging_station 16: at (-548.92m, -212.00m) • 1416.3m 17th road (left)
+store 6: at (149.48m, 223.12m) • 1418.0m 20th road (left)
+restaurant 6 / pick up address of order 42 / pick up address of order 47: at (-48.93m, 423.87m) • 1420.3m 19th road (left)
+restaurant 7 / pick up address of order 34 / pick up address of order 40 / pick up address of order 44: at (-522.59m, 221.25m) • 1423.2m 22nd road (right)
+charging_station 9: at (-38.79m, 412.00m) • 1428.6m 19th road (left)
+bus_station 3: at (8.00m, 391.80m) • 1445.2m 21st road (right)
+
+Order endpoints (shortest-path):
+pick up of order 33: at (-268.64m, 175.38m) • 1138.6m 14th road (left)
+drop off of order 33: at (175.83m, 175.79m) • 1411.4m 20th road (right)
+pick up of order 37: at (-288.53m, -16.58m) • 951.3m 4th road (left)
+drop off of order 37: at (176.20m, -496.65m) • 7.1m 15th road (right)
+pick up of order 38: at (-268.64m, 175.38m) • 1138.6m 14th road (left)
+drop off of order 38: at (-51.95m, 375.30m) • 1384.1m 19th road (right)
+pick up of order 34: at (-522.59m, 221.25m) • 1423.2m 22nd road (right)
+drop off of order 34: at (-363.09m, -221.87m) • 1230.3m 11th road (left)
+pick up of order 40: at (-522.59m, 221.25m) • 1423.2m 22nd road (right)
+drop off of order 40: at (-136.70m, 375.30m) • 1299.4m 19th road (right)
+pick up of order 43: at (-175.96m, 66.78m) • 936.2m 6th road (right)
+drop off of order 43: at (-175.32m, 340.85m) • 1210.9m 12th road (right)
+pick up of order 44: at (-522.59m, 221.25m) • 1423.2m 22nd road (right)
+drop off of order 44: at (224.48m, -546.56m) • 164.6m 15th road (left)
+pick up of order 45: at (-288.53m, -16.58m) • 951.3m 4th road (left)
+drop off of order 45: at (-133.37m, 424.70m) • 1336.7m 19th road (left)
+pick up of order 46: at (-424.45m, 53.15m) • 1157.0m 8th road (left)
+drop off of order 46: at (-175.32m, 363.31m) • 1233.4m 12th road (right)
+pick up of order 42: at (-48.93m, 423.87m) • 1420.3m 19th road (left)
+drop off of order 42: at (175.36m, -553.92m) • 65.2m 15th road (right)
+pick up of order 47: at (-48.93m, 423.87m) • 1420.3m 19th road (left)
+drop off of order 47: at (99.19m, 224.21m) • 1368.8m 20th road (left)
+pick up of order 49: at (-530.84m, -224.45m) • 1400.6m 17th road (left)
+drop off of order 49: at (-222.68m, 105.05m) • 1007.1m 6th road (left)
+pick up of order 48: at (-424.45m, 53.15m) • 1157.0m 8th road (left)
+drop off of order 48: at (-179.80m, -378.90m) • 1210.5m 10th road (left)
+pick up of order 50: at (-288.53m, -16.58m) • 951.3m 4th road (left)
+drop off of order 50: at (-423.62m, -154.99m) • 1224.0m 9th road (right)
+### recent_actions
+- Move to (-500.42 m, -219.40 m) (~143.71 m expected).
+- Drop off order #39 via leave_at_door.
+- View available orders.
+- Accept orders #42, #47, #49, #48, #50.
+- [Your last successfully executed action] Move to (176.20 m, -496.65 m) (~1370.81 m expected).
+### ephemeral_context
+[bag_hint]
+You have UNPLACED FOOD items that must be arranged into the insulated bag.
+Output ONE combined bag_cmd per order, e.g.:
+  order <id>: 1,2 -> A; 3 -> B
+
+- Order #37 items:
+    1. Sandwich
+
+Current bag layout:
+A: (26.9°C)
+  A.1 BlueCheese (29.2°C)
+  A.2 Soup (29.2°C)
+B: (17.1°C)
+  B.1 StinkyTofu (19.3°C)
+  B.2 FrozenYogurt (18.9°C)
+C: (22.0°C)
+D: (22.0°C)
+
+Example (single order):
+  order 12: 1,2 -> A; 3 -> B
+
+Example (multiple orders):
+  order 2: 1,2 -> A
+  order 3: 1,2,3,4 -> B
