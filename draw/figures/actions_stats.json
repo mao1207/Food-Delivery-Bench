@@ -1,0 +1,975 @@
+{
+  "input_dir": "D:\\BaiduNetdiskDownload\\Food-Delivery-Bench-2.0\\initial_results",
+  "actions": [
+    "move_to",
+    "drop_off",
+    "pickup",
+    "view_orders",
+    "wait",
+    "place_food_in_bag",
+    "rest",
+    "accept_order",
+    "charge_escooter",
+    "step_forward",
+    "switch_transport",
+    "buy",
+    "turn_around",
+    "use_energy_drink",
+    "say",
+    "view_bag",
+    "view_help_board",
+    "place_temp_box",
+    "use_battery_pack",
+    "post_help_request",
+    "view_bus_schedule",
+    "use_ice_pack",
+    "board_bus",
+    "rent_car"
+  ],
+  "models": [
+    "gemini-2.5-flash",
+    "claude-3.7-sonnet",
+    "llama-3.2-90b-vision-instruct",
+    "gpt-4o",
+    "gpt-5",
+    "qwen2.5-vl-72b-instruct"
+  ],
+  "global": {
+    "action_totals": {
+      "move_to": 13071,
+      "drop_off": 7182,
+      "pickup": 4303,
+      "view_orders": 3741,
+      "wait": 2356,
+      "place_food_in_bag": 2296,
+      "rest": 2021,
+      "accept_order": 2014,
+      "charge_escooter": 1925,
+      "step_forward": 1852,
+      "switch_transport": 1179,
+      "buy": 163,
+      "turn_around": 159,
+      "use_energy_drink": 159,
+      "say": 115,
+      "view_bag": 83,
+      "view_help_board": 59,
+      "place_temp_box": 46,
+      "use_battery_pack": 37,
+      "post_help_request": 13,
+      "view_bus_schedule": 11,
+      "use_ice_pack": 6,
+      "board_bus": 3,
+      "rent_car": 2
+    },
+    "models_sorted_by_attempts": [
+      "gemini-2.5-flash",
+      "claude-3.7-sonnet",
+      "llama-3.2-90b-vision-instruct",
+      "gpt-4o",
+      "gpt-5",
+      "qwen2.5-vl-72b-instruct"
+    ]
+  },
+  "per_model": {
+    "gemini-2.5-flash": {
+      "total_attempts": 8516,
+      "total_successes": 5017,
+      "actions": {
+        "move_to": {
+          "attempts": 1560,
+          "successes": 962,
+          "success_rate": 0.6166666666666667,
+          "share_in_row": 0.18318459370596524
+        },
+        "drop_off": {
+          "attempts": 1172,
+          "successes": 503,
+          "success_rate": 0.42918088737201365,
+          "share_in_row": 0.13762329732268672
+        },
+        "pickup": {
+          "attempts": 955,
+          "successes": 440,
+          "success_rate": 0.4607329842931937,
+          "share_in_row": 0.11214185063410052
+        },
+        "view_orders": {
+          "attempts": 1407,
+          "successes": 1407,
+          "success_rate": 1.0,
+          "share_in_row": 0.1652184124001879
+        },
+        "wait": {
+          "attempts": 515,
+          "successes": 511,
+          "success_rate": 0.9922330097087378,
+          "share_in_row": 0.06047440112728981
+        },
+        "place_food_in_bag": {
+          "attempts": 446,
+          "successes": 446,
+          "success_rate": 1.0,
+          "share_in_row": 0.05237200563644904
+        },
+        "rest": {
+          "attempts": 1168,
+          "successes": 1,
+          "success_rate": 0.0008561643835616438,
+          "share_in_row": 0.13715359323626117
+        },
+        "accept_order": {
+          "attempts": 410,
+          "successes": 246,
+          "success_rate": 0.6,
+          "share_in_row": 0.04814466885861907
+        },
+        "charge_escooter": {
+          "attempts": 395,
+          "successes": 60,
+          "success_rate": 0.1518987341772152,
+          "share_in_row": 0.04638327853452325
+        },
+        "step_forward": {
+          "attempts": 10,
+          "successes": 10,
+          "success_rate": 1.0,
+          "share_in_row": 0.0011742602160638798
+        },
+        "switch_transport": {
+          "attempts": 383,
+          "successes": 347,
+          "success_rate": 0.9060052219321149,
+          "share_in_row": 0.04497416627524659
+        },
+        "buy": {
+          "attempts": 5,
+          "successes": 1,
+          "success_rate": 0.2,
+          "share_in_row": 0.0005871301080319399
+        },
+        "turn_around": {
+          "attempts": 4,
+          "successes": 4,
+          "success_rate": 1.0,
+          "share_in_row": 0.0004697040864255519
+        },
+        "use_energy_drink": {
+          "attempts": 4,
+          "successes": 1,
+          "success_rate": 0.25,
+          "share_in_row": 0.0004697040864255519
+        },
+        "say": {
+          "attempts": 74,
+          "successes": 74,
+          "success_rate": 1.0,
+          "share_in_row": 0.00868952559887271
+        },
+        "view_bag": {
+          "attempts": 4,
+          "successes": 4,
+          "success_rate": 1.0,
+          "share_in_row": 0.0004697040864255519
+        },
+        "view_help_board": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "place_temp_box": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_battery_pack": {
+          "attempts": 4,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.0004697040864255519
+        },
+        "post_help_request": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bus_schedule": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_ice_pack": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "board_bus": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "rent_car": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        }
+      }
+    },
+    "claude-3.7-sonnet": {
+      "total_attempts": 8168,
+      "total_successes": 6419,
+      "actions": {
+        "move_to": {
+          "attempts": 2112,
+          "successes": 1971,
+          "success_rate": 0.9332386363636364,
+          "share_in_row": 0.25857002938295787
+        },
+        "drop_off": {
+          "attempts": 1637,
+          "successes": 440,
+          "success_rate": 0.2687843616371411,
+          "share_in_row": 0.20041625857002937
+        },
+        "pickup": {
+          "attempts": 483,
+          "successes": 453,
+          "success_rate": 0.937888198757764,
+          "share_in_row": 0.0591332027424094
+        },
+        "view_orders": {
+          "attempts": 599,
+          "successes": 599,
+          "success_rate": 1.0,
+          "share_in_row": 0.07333496571988248
+        },
+        "wait": {
+          "attempts": 677,
+          "successes": 666,
+          "success_rate": 0.983751846381093,
+          "share_in_row": 0.08288442703232125
+        },
+        "place_food_in_bag": {
+          "attempts": 453,
+          "successes": 453,
+          "success_rate": 1.0,
+          "share_in_row": 0.05546033300685602
+        },
+        "rest": {
+          "attempts": 25,
+          "successes": 5,
+          "success_rate": 0.2,
+          "share_in_row": 0.0030607247796278158
+        },
+        "accept_order": {
+          "attempts": 471,
+          "successes": 422,
+          "success_rate": 0.8959660297239915,
+          "share_in_row": 0.057664054848188054
+        },
+        "charge_escooter": {
+          "attempts": 351,
+          "successes": 76,
+          "success_rate": 0.21652421652421652,
+          "share_in_row": 0.04297257590597454
+        },
+        "step_forward": {
+          "attempts": 1022,
+          "successes": 1022,
+          "success_rate": 1.0,
+          "share_in_row": 0.12512242899118511
+        },
+        "switch_transport": {
+          "attempts": 152,
+          "successes": 146,
+          "success_rate": 0.9605263157894737,
+          "share_in_row": 0.01860920666013712
+        },
+        "buy": {
+          "attempts": 22,
+          "successes": 12,
+          "success_rate": 0.5454545454545454,
+          "share_in_row": 0.0026934378060724778
+        },
+        "turn_around": {
+          "attempts": 121,
+          "successes": 121,
+          "success_rate": 1.0,
+          "share_in_row": 0.014813907933398629
+        },
+        "use_energy_drink": {
+          "attempts": 11,
+          "successes": 10,
+          "success_rate": 0.9090909090909091,
+          "share_in_row": 0.0013467189030362389
+        },
+        "say": {
+          "attempts": 18,
+          "successes": 16,
+          "success_rate": 0.8888888888888888,
+          "share_in_row": 0.0022037218413320275
+        },
+        "view_bag": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_help_board": {
+          "attempts": 1,
+          "successes": 1,
+          "success_rate": 1.0,
+          "share_in_row": 0.00012242899118511264
+        },
+        "place_temp_box": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_battery_pack": {
+          "attempts": 4,
+          "successes": 4,
+          "success_rate": 1.0,
+          "share_in_row": 0.0004897159647404506
+        },
+        "post_help_request": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bus_schedule": {
+          "attempts": 1,
+          "successes": 1,
+          "success_rate": 1.0,
+          "share_in_row": 0.00012242899118511264
+        },
+        "use_ice_pack": {
+          "attempts": 5,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.0006121449559255632
+        },
+        "board_bus": {
+          "attempts": 2,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.0002448579823702253
+        },
+        "rent_car": {
+          "attempts": 1,
+          "successes": 1,
+          "success_rate": 1.0,
+          "share_in_row": 0.00012242899118511264
+        }
+      }
+    },
+    "llama-3.2-90b-vision-instruct": {
+      "total_attempts": 7453,
+      "total_successes": 4831,
+      "actions": {
+        "move_to": {
+          "attempts": 3147,
+          "successes": 2439,
+          "success_rate": 0.775023832221163,
+          "share_in_row": 0.42224607540587683
+        },
+        "drop_off": {
+          "attempts": 838,
+          "successes": 271,
+          "success_rate": 0.3233890214797136,
+          "share_in_row": 0.11243794445189856
+        },
+        "pickup": {
+          "attempts": 1411,
+          "successes": 287,
+          "success_rate": 0.20340184266477676,
+          "share_in_row": 0.1893197370186502
+        },
+        "view_orders": {
+          "attempts": 341,
+          "successes": 341,
+          "success_rate": 1.0,
+          "share_in_row": 0.04575338789749094
+        },
+        "wait": {
+          "attempts": 200,
+          "successes": 200,
+          "success_rate": 1.0,
+          "share_in_row": 0.026834831611431638
+        },
+        "place_food_in_bag": {
+          "attempts": 301,
+          "successes": 287,
+          "success_rate": 0.9534883720930233,
+          "share_in_row": 0.04038642157520462
+        },
+        "rest": {
+          "attempts": 6,
+          "successes": 1,
+          "success_rate": 0.16666666666666666,
+          "share_in_row": 0.0008050449483429492
+        },
+        "accept_order": {
+          "attempts": 214,
+          "successes": 188,
+          "success_rate": 0.8785046728971962,
+          "share_in_row": 0.028713269824231853
+        },
+        "charge_escooter": {
+          "attempts": 380,
+          "successes": 279,
+          "success_rate": 0.7342105263157894,
+          "share_in_row": 0.050986180061720114
+        },
+        "step_forward": {
+          "attempts": 214,
+          "successes": 214,
+          "success_rate": 1.0,
+          "share_in_row": 0.028713269824231853
+        },
+        "switch_transport": {
+          "attempts": 324,
+          "successes": 301,
+          "success_rate": 0.9290123456790124,
+          "share_in_row": 0.043472427210519256
+        },
+        "buy": {
+          "attempts": 7,
+          "successes": 7,
+          "success_rate": 1.0,
+          "share_in_row": 0.0009392191064001073
+        },
+        "turn_around": {
+          "attempts": 9,
+          "successes": 9,
+          "success_rate": 1.0,
+          "share_in_row": 0.0012075674225144237
+        },
+        "use_energy_drink": {
+          "attempts": 54,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.007245404535086542
+        },
+        "say": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bag": {
+          "attempts": 7,
+          "successes": 7,
+          "success_rate": 1.0,
+          "share_in_row": 0.0009392191064001073
+        },
+        "view_help_board": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "place_temp_box": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_battery_pack": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "post_help_request": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bus_schedule": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_ice_pack": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "board_bus": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "rent_car": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        }
+      }
+    },
+    "gpt-4o": {
+      "total_attempts": 7173,
+      "total_successes": 4694,
+      "actions": {
+        "move_to": {
+          "attempts": 2294,
+          "successes": 1648,
+          "success_rate": 0.7183958151700087,
+          "share_in_row": 0.31981040011152934
+        },
+        "drop_off": {
+          "attempts": 1536,
+          "successes": 467,
+          "success_rate": 0.3040364583333333,
+          "share_in_row": 0.21413634462567963
+        },
+        "pickup": {
+          "attempts": 515,
+          "successes": 412,
+          "success_rate": 0.8,
+          "share_in_row": 0.07179701658999024
+        },
+        "view_orders": {
+          "attempts": 388,
+          "successes": 388,
+          "success_rate": 1.0,
+          "share_in_row": 0.05409173288721595
+        },
+        "wait": {
+          "attempts": 363,
+          "successes": 356,
+          "success_rate": 0.9807162534435262,
+          "share_in_row": 0.050606440819740695
+        },
+        "place_food_in_bag": {
+          "attempts": 412,
+          "successes": 412,
+          "success_rate": 1.0,
+          "share_in_row": 0.05743761327199219
+        },
+        "rest": {
+          "attempts": 505,
+          "successes": 12,
+          "success_rate": 0.023762376237623763,
+          "share_in_row": 0.07040289976300014
+        },
+        "accept_order": {
+          "attempts": 275,
+          "successes": 244,
+          "success_rate": 0.8872727272727273,
+          "share_in_row": 0.0383382127422278
+        },
+        "charge_escooter": {
+          "attempts": 96,
+          "successes": 76,
+          "success_rate": 0.7916666666666666,
+          "share_in_row": 0.013383521539104977
+        },
+        "step_forward": {
+          "attempts": 562,
+          "successes": 562,
+          "success_rate": 1.0,
+          "share_in_row": 0.07834936567684372
+        },
+        "switch_transport": {
+          "attempts": 58,
+          "successes": 56,
+          "success_rate": 0.9655172413793104,
+          "share_in_row": 0.00808587759654259
+        },
+        "buy": {
+          "attempts": 82,
+          "successes": 26,
+          "success_rate": 0.3170731707317073,
+          "share_in_row": 0.011431757981318834
+        },
+        "turn_around": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_energy_drink": {
+          "attempts": 70,
+          "successes": 20,
+          "success_rate": 0.2857142857142857,
+          "share_in_row": 0.009758817788930712
+        },
+        "say": {
+          "attempts": 1,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.00013941168269901018
+        },
+        "view_bag": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_help_board": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "place_temp_box": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_battery_pack": {
+          "attempts": 14,
+          "successes": 14,
+          "success_rate": 1.0,
+          "share_in_row": 0.0019517635577861424
+        },
+        "post_help_request": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bus_schedule": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_ice_pack": {
+          "attempts": 1,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.00013941168269901018
+        },
+        "board_bus": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "rent_car": {
+          "attempts": 1,
+          "successes": 1,
+          "success_rate": 1.0,
+          "share_in_row": 0.00013941168269901018
+        }
+      }
+    },
+    "gpt-5": {
+      "total_attempts": 6720,
+      "total_successes": 4608,
+      "actions": {
+        "move_to": {
+          "attempts": 2071,
+          "successes": 1600,
+          "success_rate": 0.7725736359246741,
+          "share_in_row": 0.3081845238095238
+        },
+        "drop_off": {
+          "attempts": 1558,
+          "successes": 454,
+          "success_rate": 0.2913992297817715,
+          "share_in_row": 0.2318452380952381
+        },
+        "pickup": {
+          "attempts": 645,
+          "successes": 396,
+          "success_rate": 0.6139534883720931,
+          "share_in_row": 0.09598214285714286
+        },
+        "view_orders": {
+          "attempts": 674,
+          "successes": 674,
+          "success_rate": 1.0,
+          "share_in_row": 0.10029761904761905
+        },
+        "wait": {
+          "attempts": 369,
+          "successes": 367,
+          "success_rate": 0.994579945799458,
+          "share_in_row": 0.054910714285714285
+        },
+        "place_food_in_bag": {
+          "attempts": 396,
+          "successes": 396,
+          "success_rate": 1.0,
+          "share_in_row": 0.05892857142857143
+        },
+        "rest": {
+          "attempts": 133,
+          "successes": 12,
+          "success_rate": 0.09022556390977443,
+          "share_in_row": 0.019791666666666666
+        },
+        "accept_order": {
+          "attempts": 310,
+          "successes": 257,
+          "success_rate": 0.8290322580645161,
+          "share_in_row": 0.046130952380952384
+        },
+        "charge_escooter": {
+          "attempts": 102,
+          "successes": 71,
+          "success_rate": 0.696078431372549,
+          "share_in_row": 0.015178571428571428
+        },
+        "step_forward": {
+          "attempts": 44,
+          "successes": 44,
+          "success_rate": 1.0,
+          "share_in_row": 0.006547619047619048
+        },
+        "switch_transport": {
+          "attempts": 118,
+          "successes": 116,
+          "success_rate": 0.9830508474576272,
+          "share_in_row": 0.01755952380952381
+        },
+        "buy": {
+          "attempts": 38,
+          "successes": 13,
+          "success_rate": 0.34210526315789475,
+          "share_in_row": 0.005654761904761905
+        },
+        "turn_around": {
+          "attempts": 25,
+          "successes": 25,
+          "success_rate": 1.0,
+          "share_in_row": 0.003720238095238095
+        },
+        "use_energy_drink": {
+          "attempts": 15,
+          "successes": 10,
+          "success_rate": 0.6666666666666666,
+          "share_in_row": 0.002232142857142857
+        },
+        "say": {
+          "attempts": 22,
+          "successes": 22,
+          "success_rate": 1.0,
+          "share_in_row": 0.003273809523809524
+        },
+        "view_bag": {
+          "attempts": 70,
+          "successes": 70,
+          "success_rate": 1.0,
+          "share_in_row": 0.010416666666666666
+        },
+        "view_help_board": {
+          "attempts": 58,
+          "successes": 58,
+          "success_rate": 1.0,
+          "share_in_row": 0.008630952380952382
+        },
+        "place_temp_box": {
+          "attempts": 46,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.006845238095238095
+        },
+        "use_battery_pack": {
+          "attempts": 2,
+          "successes": 2,
+          "success_rate": 1.0,
+          "share_in_row": 0.00029761904761904765
+        },
+        "post_help_request": {
+          "attempts": 13,
+          "successes": 11,
+          "success_rate": 0.8461538461538461,
+          "share_in_row": 0.0019345238095238096
+        },
+        "view_bus_schedule": {
+          "attempts": 10,
+          "successes": 10,
+          "success_rate": 1.0,
+          "share_in_row": 0.001488095238095238
+        },
+        "use_ice_pack": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "board_bus": {
+          "attempts": 1,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.00014880952380952382
+        },
+        "rent_car": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        }
+      }
+    },
+    "qwen2.5-vl-72b-instruct": {
+      "total_attempts": 4766,
+      "total_successes": 3038,
+      "actions": {
+        "move_to": {
+          "attempts": 1887,
+          "successes": 1097,
+          "success_rate": 0.5813460519342872,
+          "share_in_row": 0.39592950062945864
+        },
+        "drop_off": {
+          "attempts": 441,
+          "successes": 262,
+          "success_rate": 0.5941043083900227,
+          "share_in_row": 0.09253042383550147
+        },
+        "pickup": {
+          "attempts": 294,
+          "successes": 288,
+          "success_rate": 0.9795918367346939,
+          "share_in_row": 0.061686949223667645
+        },
+        "view_orders": {
+          "attempts": 332,
+          "successes": 332,
+          "success_rate": 1.0,
+          "share_in_row": 0.06966009232060429
+        },
+        "wait": {
+          "attempts": 232,
+          "successes": 230,
+          "success_rate": 0.9913793103448276,
+          "share_in_row": 0.04867813680234998
+        },
+        "place_food_in_bag": {
+          "attempts": 288,
+          "successes": 288,
+          "success_rate": 1.0,
+          "share_in_row": 0.06042803189257239
+        },
+        "rest": {
+          "attempts": 184,
+          "successes": 2,
+          "success_rate": 0.010869565217391304,
+          "share_in_row": 0.03860679815358791
+        },
+        "accept_order": {
+          "attempts": 334,
+          "successes": 275,
+          "success_rate": 0.8233532934131736,
+          "share_in_row": 0.07007973143096936
+        },
+        "charge_escooter": {
+          "attempts": 601,
+          "successes": 123,
+          "success_rate": 0.20465890183028287,
+          "share_in_row": 0.12610155266470835
+        },
+        "step_forward": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "switch_transport": {
+          "attempts": 144,
+          "successes": 139,
+          "success_rate": 0.9652777777777778,
+          "share_in_row": 0.030214015946286196
+        },
+        "buy": {
+          "attempts": 9,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.0018883759966428872
+        },
+        "turn_around": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_energy_drink": {
+          "attempts": 5,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.001049097775912715
+        },
+        "say": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bag": {
+          "attempts": 2,
+          "successes": 2,
+          "success_rate": 1.0,
+          "share_in_row": 0.000419639110365086
+        },
+        "view_help_board": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "place_temp_box": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_battery_pack": {
+          "attempts": 13,
+          "successes": 0,
+          "success_rate": 0.0,
+          "share_in_row": 0.002727654217373059
+        },
+        "post_help_request": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "view_bus_schedule": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "use_ice_pack": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "board_bus": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        },
+        "rent_car": {
+          "attempts": 0,
+          "successes": 0,
+          "success_rate": null,
+          "share_in_row": 0.0
+        }
+      }
+    }
+  }
+}

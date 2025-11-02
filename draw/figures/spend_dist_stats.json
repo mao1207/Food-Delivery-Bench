@@ -1,0 +1,117 @@
+{
+  "input_dir": "D:\\BaiduNetdiskDownload\\Food-Delivery-Bench-2.0\\initial_results",
+  "models": [
+    "gpt-4o",
+    "gpt-5",
+    "qwen2.5-vl-72b-instruct",
+    "llama-3.2-90b-vision-instruct",
+    "gemini-2.5-flash",
+    "claude-3.7-sonnet"
+  ],
+  "categories": [
+    "hospital",
+    "charging",
+    "purchases",
+    "rental"
+  ],
+  "global": {
+    "category_totals": {
+      "hospital": 4535.0,
+      "charging": 1195.163912360079,
+      "purchases": 585.0,
+      "rental": 52.74377499999936
+    }
+  },
+  "per_model": {
+    "gpt-4o": {
+      "amounts": {
+        "hospital": 725.0,
+        "charging": 302.2296910071136,
+        "purchases": 260.0,
+        "rental": 24.67147499999992
+      },
+      "row_total": 1311.9011660071135,
+      "shares": {
+        "hospital": 0.5526330937006492,
+        "charging": 0.2303753505509689,
+        "purchases": 0.1981856611891983,
+        "rental": 0.018805894559183692
+      }
+    },
+    "gpt-5": {
+      "amounts": {
+        "hospital": 900.0,
+        "charging": 139.83514999999625,
+        "purchases": 128.0,
+        "rental": 0.0
+      },
+      "row_total": 1167.8351499999962,
+      "shares": {
+        "hospital": 0.770656714691284,
+        "charging": 0.11973877477484446,
+        "purchases": 0.1096045105338715,
+        "rental": 0.0
+      }
+    },
+    "qwen2.5-vl-72b-instruct": {
+      "amounts": {
+        "hospital": 960.0,
+        "charging": 191.75988493094403,
+        "purchases": 0.0,
+        "rental": 0.0
+      },
+      "row_total": 1151.759884930944,
+      "shares": {
+        "hospital": 0.8335070638942756,
+        "charging": 0.1664929361057243,
+        "purchases": 0.0,
+        "rental": 0.0
+      }
+    },
+    "llama-3.2-90b-vision-instruct": {
+      "amounts": {
+        "hospital": 935.0,
+        "charging": 146.70966806930306,
+        "purchases": 69.0,
+        "rental": 0.0
+      },
+      "row_total": 1150.709668069303,
+      "shares": {
+        "hospital": 0.8125420563892303,
+        "charging": 0.12749494693605656,
+        "purchases": 0.05996299667471325,
+        "rental": 0.0
+      }
+    },
+    "gemini-2.5-flash": {
+      "amounts": {
+        "hospital": 700.0,
+        "charging": 111.75996835272126,
+        "purchases": 6.0,
+        "rental": 0.0
+      },
+      "row_total": 817.7599683527212,
+      "shares": {
+        "hospital": 0.8559969026242084,
+        "charging": 0.1366659810675842,
+        "purchases": 0.0073371163082075,
+        "rental": 0.0
+      }
+    },
+    "claude-3.7-sonnet": {
+      "amounts": {
+        "hospital": 315.0,
+        "charging": 302.8695500000005,
+        "purchases": 122.0,
+        "rental": 28.07229999999944
+      },
+      "row_total": 767.94185,
+      "shares": {
+        "hospital": 0.4101873078020165,
+        "charging": 0.39439125501494743,
+        "purchases": 0.15886619540268576,
+        "rental": 0.03655524178035022
+      }
+    }
+  }
+}
