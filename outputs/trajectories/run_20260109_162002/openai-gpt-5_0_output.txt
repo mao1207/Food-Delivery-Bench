@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery sufficient for a while. Must prioritize checking for available orders to keep earning. Viewing orders is the correct next step before moving anywhere.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept the best-paying nearby orders, ride to the pickup, wait only if prep time is short, bag properly, and deliver efficiently. Monitor scooter battery; plan a top-up en route if multiple deliveries extend range."
+}

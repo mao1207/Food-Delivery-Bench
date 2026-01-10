@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders. Energy and scooter battery are sufficient for initial runs. Per rules, I should promptly check available orders before moving anywhere to avoid idle time.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept profitable nearby orders, ride to pickup, manage bag with heat/ice if needed, then deliver. Monitor energy and battery; charge if battery <20% between jobs."
+}

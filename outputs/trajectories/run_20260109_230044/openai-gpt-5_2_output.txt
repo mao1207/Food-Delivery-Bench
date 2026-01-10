@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "I’m at the city center on an e-scooter with full energy and 50% battery. No active orders; the order pool is visible. Priority is to accept efficient nearby pickups with good $/km and manageable temp needs. Orders #5 and #6 are close pickups (~289m) with short distances to dropoff; we can bundle both from the same restaurant for efficiency.",
+"action": "ACCEPT_ORDER([5, 6])",
+"future_plan": "Ride to restaurant at (-288.53m, -16.58m); pick up both when ready, bag them with compartments cold/hot as needed; deliver #6 first to (-176.97m,-125.79m) then #5 to (-304.10m,-224.68m); monitor scooter battery and consider charging after deliveries if below ~30%."
+}

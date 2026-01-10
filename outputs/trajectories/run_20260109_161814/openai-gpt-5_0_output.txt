@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery are sufficient for now. To maximize earnings, I should immediately check available orders and accept profitable ones. Avoid unnecessary movement or charging.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Evaluate listed orders by payout vs distance and route. Accept optimal ones, ride to pickup, wait if needed, then bag and deliver efficiently while monitoring energy (use drink if needed) and scooter battery (charge en route if low)."
+}

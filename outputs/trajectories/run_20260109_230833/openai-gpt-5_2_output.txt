@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We’re idle with full energy and 50% scooter battery. Must grab orders quickly. Choose pickups closer to us to start moving fast. Orders #5 and #6 are from restaurant 1 at (-288,-17) which is among nearer POIs (~289 m) and short routes with tight limits but doable by scooter. We can accept both to batch from same pickup.",
+"action": "ACCEPT_ORDER([5, 6])",
+"future_plan": "Ride to restaurant 1 at (-288.53m,-16.58m); PICKUP both when ready, bag properly; deliver #6 first to (-176.97m,-125.79m) then #5 to (-304.10m,-224.68m). Monitor time, avoid accel, then view more orders after drop-offs."
+}

@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We have two active orders from the same restaurant, both still preparing (3–5 min). Best to head to the pickup now to be ready. Battery 50% is sufficient for the round trip; no need to charge. Energy 100%. Prioritize timely arrival to minimize wait and start pickup ASAP.",
+"action": "MOVE(-288.53m, -16.58m)",
+"future_plan": "On arrival, if food still not ready, WAIT briefly; as each becomes ready, PICKUP both orders and PLACE_FOOD_IN_BAG keeping items stable. Then ride to drop off #6 first, then #5. Keep pace normal to avoid damage; monitor time limits and battery, charging only if <20% after deliveries."
+}

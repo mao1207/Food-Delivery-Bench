@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "I’m on an e-scooter at the city center with full energy and 50% battery. No active orders yet, so I should immediately check available orders to start earning. Battery range is adequate for a couple short deliveries.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept the best-paying orders with nearby pickups first, then ride to the restaurant, pick up, bag properly, and deliver efficiently while monitoring scooter battery and energy. Charge only if needed between runs."
+}

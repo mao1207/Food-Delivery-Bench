@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy 100%, scooter 50% battery with ample range. Priority is to view and accept new orders quickly to earn money. No need to charge or rest now.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept profitable nearby orders, ride to pickup, manage bag temperature if needed, deliver efficiently. Monitor scooter battery; consider topping up if multiple long trips appear. Keep energy above safe levels."
+}

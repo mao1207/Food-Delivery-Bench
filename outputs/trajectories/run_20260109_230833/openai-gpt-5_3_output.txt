@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We just accepted orders #5 and #6; both pick up from the same restaurant at (-288.53,-16.58). Food not ready yet (3–5 min), but traveling there now is optimal. Scooter battery 50% is sufficient; energy full. Avoid accel to prevent damage.",
+"action": "MOVE(-288.53m, -16.58m)",
+"future_plan": "Arrive at restaurant; if early, WAIT until both are ready, PICKUP and PLACE_FOOD_IN_BAG. Deliver order #6 first to (-176.97,-125.79) then order #5 to (-304.10,-224.68). After drop-offs, check new orders. Monitor battery; charge if below ~20% near a station."
+}

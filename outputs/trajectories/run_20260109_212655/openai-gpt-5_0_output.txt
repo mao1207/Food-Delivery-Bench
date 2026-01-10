@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We have two active orders from the same pickup 289m away; both still being prepared (3–5 min). Best to head to the restaurant now to be ready when they’re done. Energy is full; scooter at 50% (ample for round trip). Prioritize order #6 after pickup due to tighter deadline and closer dropoff.",
+"action": "MOVE(-288.53m, -16.58m)",
+"future_plan": "On arrival, WAIT briefly until food is ready, then PICKUP both. Arrange in bag; buy/use heat/ice packs only if required by items. Deliver #6 to (-176.97m, -125.79m) leave_at_door, then #5 to (-304.10m, -224.68m). If scooter battery drops near 20%, detour to charging_station 12 after deliveries."
+}

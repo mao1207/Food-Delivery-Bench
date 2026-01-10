@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery are sufficient for initial work. To maximize earnings, I should promptly view and accept new orders. No need to move or charge yet.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Review available orders, accept the best-paying nearby batch, ride to the pickup, manage bag with heat/ice if needed, deliver efficiently; monitor scooter battery and energy, charging if dropping below safe margins between jobs."
+}

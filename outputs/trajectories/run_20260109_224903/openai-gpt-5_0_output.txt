@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We already accepted orders 6 and 5; both share the same pickup. Food isn’t ready yet (~3–5 min), so best to ride to the restaurant now to be there when it’s ready. Battery 50% is ample for ~1.25 km; energy 100%. Move efficiently to the pickup door and wait if needed.",
+"action": "MOVE(-288.53m, -16.58m)",
+"future_plan": "Upon arrival, wait until food is ready, then PICKUP both orders and PLACE_FOOD_IN_BAG. Deliver order 6 first to (-176.97m, -125.79m), then order 5 to (-304.10m, -224.68m). After both drop-offs, VIEW_ORDERS to grab new jobs; monitor scooter battery and charge if needed."
+}

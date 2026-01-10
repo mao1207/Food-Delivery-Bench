@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery are fine for now (50% batt ≈ 1250 m range). To maximize earnings, promptly check available orders. Avoid unnecessary movement or charging.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept the best-paying nearby pickup with short delivery distance; ride to pickup, collect and bag items, then deliver efficiently. Monitor battery; charge only if upcoming route risks depleting below safe margin (~15%)."
+}

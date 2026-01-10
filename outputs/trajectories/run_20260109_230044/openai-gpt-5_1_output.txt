@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery are sufficient. Per rules, prioritize viewing and accepting new orders to avoid idle time.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept profitable nearby orders, ride to the pickup, manage bag with packs if needed, then deliver efficiently while monitoring energy and scooter battery; charge if battery dips low between runs."
+}

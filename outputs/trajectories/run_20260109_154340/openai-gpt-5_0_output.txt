@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "No active orders; energy and scooter battery sufficient to start. Must prioritize checking available orders before moving to avoid wasting time.",
+"action": "VIEW_ORDERS()",
+"future_plan": "Accept the best-paying nearby orders with efficient routing. Ride to the pickup, manage bag temperature if needed, pick up, bag items, and deliver. Monitor battery; charge only if necessary en route."
+}
