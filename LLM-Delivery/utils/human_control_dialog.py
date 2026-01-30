@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-人类控制对话框
-集成到MapObserver中的人类控制界面
+Human control dialog
+Human control interface integrated into MapObserver
 """
 
 import sys
@@ -24,11 +24,11 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.insert(0, project_root)
 
 from Base.DeliveryMan import DMAction, DMActionKind
-from utils.map_observer import OrdersDialog  # 你这边已经可用
+from utils.map_observer import OrdersDialog  # already available on your side
 
 
 class HumanControlDialog(QDialog):
-    """人类控制对话框"""
+    """Human control dialog"""
 
     def __init__(self, parent=None, agents: List[Any] = None):
         super().__init__(parent)
@@ -103,7 +103,7 @@ class HumanControlDialog(QDialog):
 
     # ---------- UI ----------
     def setup_ui(self):
-        self.setWindowTitle("人类控制界面 - DeliveryMan")
+        self.setWindowTitle("Human Control - DeliveryMan")
         self.setGeometry(100, 100, 1200, 760)
 
         main_layout = QVBoxLayout(self)
@@ -123,8 +123,8 @@ class HumanControlDialog(QDialog):
         panel = QWidget()
         layout = QVBoxLayout(panel)
 
-        # Agent 选择
-        agent_group = QGroupBox("选择Agent")
+        # Agent selection
+        agent_group = QGroupBox("Select Agent")
         agent_layout = QVBoxLayout(agent_group)
         self.agent_combo = QComboBox()
         self.agent_combo.currentTextChanged.connect(self.on_agent_changed)
@@ -133,15 +133,15 @@ class HumanControlDialog(QDialog):
             self.agent_combo.addItem(f"Agent {agent.agent_id}")
         layout.addWidget(agent_group)
 
-        # 状态信息
-        status_group = QGroupBox("当前状态")
+        # Status info
+        status_group = QGroupBox("Current Status")
         status_layout = QVBoxLayout(status_group)
         self.status_labels = {}
         for label_text, key in [
-            ("位置", "position"), ("模式", "mode"), ("能量", "energy"),
-            ("收入", "earnings"), ("模拟时间", "sim_time"),
-            ("活跃订单", "active_orders"), ("携带物品", "carrying"),
-            ("当前动作", "current_action"), ("控制模式", "human_control_mode")
+            ("Position", "position"), ("Mode", "mode"), ("Energy", "energy"),
+            ("Earnings", "earnings"), ("Sim Time", "sim_time"),
+            ("Active Orders", "active_orders"), ("Carrying", "carrying"),
+            ("Current Action", "current_action"), ("Control Mode", "human_control_mode")
         ]:
             row = QHBoxLayout()
             row.addWidget(QLabel(f"{label_text}:"))
@@ -152,8 +152,8 @@ class HumanControlDialog(QDialog):
             status_layout.addLayout(row)
         layout.addWidget(status_group)
 
-        # 我的订单（QTextEdit：可滚动、等宽、不换行）
-        orders_group = QGroupBox("我的订单（active orders）")
+        # My orders (QTextEdit: scrollable, monospace, no wrap)
+        orders_group = QGroupBox("My Orders (active orders)")
         orders_layout = QVBoxLayout(orders_group)
         self.orders_text = QTextEdit()
         self.orders_text.setReadOnly(True)
@@ -169,19 +169,19 @@ class HumanControlDialog(QDialog):
         orders_layout.addWidget(self.orders_text)
         layout.addWidget(orders_group)
 
-        # 控制模式
-        control_group = QGroupBox("控制模式")
+        # Control mode
+        control_group = QGroupBox("Control Mode")
         control_layout = QVBoxLayout(control_group)
-        self.mode_label = QLabel("当前模式: VLM控制")
+        self.mode_label = QLabel("Current mode: VLM control")
         self.mode_label.setStyleSheet("font-weight: bold; color: #FF6347;")
         control_layout.addWidget(self.mode_label)
-        self.toggle_mode_btn = QPushButton("切换到人类控制")
+        self.toggle_mode_btn = QPushButton("Switch to Human Control")
         self.toggle_mode_btn.clicked.connect(self.toggle_control_mode)
         control_layout.addWidget(self.toggle_mode_btn)
         layout.addWidget(control_group)
 
-        # 可选 POI
-        actions_group = QGroupBox("可选POI")
+        # Available POIs
+        actions_group = QGroupBox("Available POIs")
         actions_layout = QVBoxLayout(actions_group)
         self.actions_list = QListWidget()
         self.actions_list.setTextElideMode(Qt.ElideNone)
@@ -201,11 +201,11 @@ class HumanControlDialog(QDialog):
         panel = QWidget()
         layout = QVBoxLayout(panel)
 
-        # 动作输入
-        input_group = QGroupBox("动作输入")
+        # Action input
+        input_group = QGroupBox("Action Input")
         input_layout = QVBoxLayout(input_group)
         row = QHBoxLayout()
-        row.addWidget(QLabel("动作类型:"))
+        row.addWidget(QLabel("Action Type:"))
         self.action_combo = QComboBox()
         self.action_combo.addItems([action.value for action in DMActionKind])
         self.action_combo.currentTextChanged.connect(self.on_action_type_changed)
@@ -213,37 +213,37 @@ class HumanControlDialog(QDialog):
         input_layout.addLayout(row)
 
         row2 = QHBoxLayout()
-        row2.addWidget(QLabel("参数 (JSON格式):"))
+        row2.addWidget(QLabel("Parameters (JSON):"))
         self.params_input = QLineEdit()
-        self.params_input.setPlaceholderText('例如: {"tx": 100.0, "ty": 200.0}')
+        self.params_input.setPlaceholderText('e.g.: {"tx": 100.0, "ty": 200.0}')
         row2.addWidget(self.params_input)
         input_layout.addLayout(row2)
 
         btn_row = QHBoxLayout()
-        self.submit_btn = QPushButton("提交动作")
+        self.submit_btn = QPushButton("Submit Action")
         self.submit_btn.clicked.connect(self.submit_action)
         self.submit_btn.setEnabled(False)
         btn_row.addWidget(self.submit_btn)
-        self.clear_btn = QPushButton("清空输入")
+        self.clear_btn = QPushButton("Clear Input")
         self.clear_btn.clicked.connect(self.clear_input)
         btn_row.addWidget(self.clear_btn)
         input_layout.addLayout(btn_row)
         layout.addWidget(input_group)
 
-        # 动作队列
-        queue_group = QGroupBox("动作队列")
+        # Action queue
+        queue_group = QGroupBox("Action Queue")
         queue_layout = QVBoxLayout(queue_group)
         self.queue_list = QListWidget()
         queue_layout.addWidget(self.queue_list)
         btns = QHBoxLayout()
-        self.clear_queue_btn = QPushButton("清空队列")
+        self.clear_queue_btn = QPushButton("Clear Queue")
         self.clear_queue_btn.clicked.connect(self.clear_queue)
         btns.addWidget(self.clear_queue_btn)
         queue_layout.addLayout(btns)
         layout.addWidget(queue_group)
 
-        # 日志
-        log_group = QGroupBox("系统日志")
+        # Logs
+        log_group = QGroupBox("System Logs")
         log_layout = QVBoxLayout(log_group)
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
@@ -305,7 +305,7 @@ class HumanControlDialog(QDialog):
         return (pu_xy, pu_road), (do_xy, do_road)
 
     def _current_order_signature(self):
-        """(活跃订单ID元组, 帮助订单ID元组) —— 用于检测变化"""
+        """(Tuple of active order IDs, tuple of help order IDs) — used to detect changes"""
         try:
             active_ids = tuple(sorted(
                 int(getattr(o, "id", -1))
@@ -342,13 +342,13 @@ class HumanControlDialog(QDialog):
                 if agent.agent_id == agent_id:
                     self.target_agent = agent
                     self.populate_poi_list()
-                    self.log_message(f"🎯 已选择Agent {agent_id}")
-                    self.log_message(f"   位置: ({agent.x:.1f}, {agent.y:.1f})")
-                    self.log_message(f"   模式: {agent.mode.value}")
-                    self.log_message(f"   控制模式: {'人类控制' if agent.human_control_mode else 'VLM控制'}")
+                    self.log_message(f"🎯 Selected Agent {agent_id}")
+                    self.log_message(f"   Position: ({agent.x:.1f}, {agent.y:.1f})")
+                    self.log_message(f"   Mode: {agent.mode.value}")
+                    self.log_message(f"   Control Mode: {'Human Control' if agent.human_control_mode else 'VLM Control'}")
                     break
         except Exception as e:
-            self.log_message(f"选择Agent失败: {e}")
+            self.log_message(f"Failed to select agent: {e}")
 
     def update_status(self):
         if not self.target_agent or not self.status_labels:
@@ -364,17 +364,17 @@ class HumanControlDialog(QDialog):
             self.status_labels["sim_time"].setText(f"{h:d}:{m:02d}:{s:02d}" if h > 0 else f"{m:02d}:{s:02d}")
             self.status_labels["active_orders"].setText(str(len(status.get('active_orders', []) or [])))
             self.status_labels["carrying"].setText(str(len(status['carrying'])))
-            self.status_labels["current_action"].setText(status['current_action'] or "无")
+            self.status_labels["current_action"].setText(status['current_action'] or "None")
 
             if status['human_control_mode']:
-                self.mode_label.setText("当前模式: 人类控制")
+                self.mode_label.setText("Current mode: Human control")
                 self.mode_label.setStyleSheet("font-weight: bold; color: #32CD32;")
-                self.toggle_mode_btn.setText("切换到VLM控制")
+                self.toggle_mode_btn.setText("Switch to VLM Control")
                 self.submit_btn.setEnabled(True)
             else:
-                self.mode_label.setText("当前模式: VLM控制")
+                self.mode_label.setText("Current mode: VLM control")
                 self.mode_label.setStyleSheet("font-weight: bold; color: #FF6347;")
-                self.toggle_mode_btn.setText("切换到人类控制")
+                self.toggle_mode_btn.setText("Switch to Human Control")
                 self.submit_btn.setEnabled(False)
 
             self.update_queue_display()
@@ -403,7 +403,7 @@ class HumanControlDialog(QDialog):
                 pass
 
         except Exception as e:
-            self.log_message(f"更新状态时出错: {e}")
+            self.log_message(f"Error while updating status: {e}")
 
     def update_queue_display(self):
         if not self.queue_list:
@@ -432,7 +432,7 @@ class HumanControlDialog(QDialog):
         except Exception:
             header = None
 
-        # 2) 若没有头部，构造一个精简头部
+        # 2) If there is no header, construct a concise one
         if not header:
             oid = getattr(o, 'id', '?')
             pu = getattr(o, 'pickup_road_name', '') or ''
@@ -449,10 +449,10 @@ class HumanControlDialog(QDialog):
             ]
             header = "\n".join(header_lines)
 
-        # 3) 规范化头部文本（便于包含判断）
+        # 3) Normalize header text (for easier contains checks)
         header_lc = header.lower()
 
-        # 4) 组装最终文本：头部 + Items（如需）+ Note（如需）
+        # 4) Assemble final text: header + Items (if needed) + Note (if needed)
         lines = [header]
 
         # ---- Items ----
@@ -461,12 +461,12 @@ class HumanControlDialog(QDialog):
         except Exception:
             items = []
 
-        if items and ("items" not in header_lc):  # 头部未自带 Items 时再追加
+        if items and ("items" not in header_lc):  # Add Items only if header doesn't already contain them
             lines.append("  Items  :")
             for it in items:
                 name = getattr(it, "name", str(it))
 
-                # 兼容 temp_c / serving_temp_c
+                # Support both temp_c / serving_temp_c
                 t_val = getattr(it, "temp_c", None)
                 if t_val is None or (isinstance(t_val, float) and t_val != t_val):  # NaN 检查：t!=t
                     t_val = getattr(it, "serving_temp_c", None)
@@ -496,7 +496,7 @@ class HumanControlDialog(QDialog):
         if isinstance(note, str) and note.strip() and ("note" not in header_lc):
             lines.append(f"  Note   : {note.strip()}")
 
-        # 5) 返回并确保以换行结尾
+        # 5) Return and ensure ending with newline
         out = "\n".join(lines)
         if not out.endswith("\n"):
             out += "\n"
@@ -570,17 +570,17 @@ class HumanControlDialog(QDialog):
             current_action = status.get('current_action')
             queue_count = len(self.target_agent.human_action_queue) if hasattr(self.target_agent, 'human_action_queue') else 0
             if current_action and current_action != self.last_current_action:
-                self.log_message(f"🚀 开始执行动作: {current_action}")
+                self.log_message(f"🚀 Started executing action: {current_action}")
                 self.last_current_action = current_action
             if queue_count != self.last_action_count:
                 if queue_count < self.last_action_count:
-                    self.log_message(f"✅ 动作已从队列中移除，剩余队列长度: {queue_count}")
+                    self.log_message(f"✅ Action removed from queue, remaining length: {queue_count}")
                 self.last_action_count = queue_count
             if self.last_current_action and not current_action:
-                self.log_message(f"✅ 动作执行完成: {self.last_current_action}")
+                self.log_message(f"✅ Action completed: {self.last_current_action}")
                 self.last_current_action = None
         except Exception as e:
-            self.log_message(f"监控动作执行时出错: {e}")
+            self.log_message(f"Error while monitoring action execution: {e}")
 
     def toggle_control_mode(self):
         if not self.target_agent:
@@ -625,10 +625,10 @@ class HumanControlDialog(QDialog):
 
     def submit_action(self):
         if not self.target_agent:
-            QMessageBox.warning(self, "警告", "没有选择目标Agent")
+            QMessageBox.warning(self, "Warning", "No target agent selected")
             return
         if not self.target_agent.human_control_mode:
-            QMessageBox.warning(self, "警告", "当前不是人类控制模式")
+            QMessageBox.warning(self, "Warning", "Current mode is not human control")
             return
         try:
             action_type = self.action_combo.currentText()
@@ -641,20 +641,20 @@ class HumanControlDialog(QDialog):
             action = self.target_agent.create_human_action(action_type, **params)
             success = self.target_agent.submit_human_action(action)
             if success:
-                self.log_message(f"📤 已提交动作: {action_type}")
+                self.log_message(f"📤 Submitted action: {action_type}")
                 if params:
-                    self.log_message(f"   参数: {params}")
-                self.log_message(f"   队列位置: {len(self.target_agent.human_action_queue)}")
+                    self.log_message(f"   Params: {params}")
+                self.log_message(f"   Queue position: {len(self.target_agent.human_action_queue)}")
                 self.clear_input()
                 if any(k in action_type.lower() for k in ("accept_order", "pickup", "drop_off", "accept_help")):
                     QTimer.singleShot(200, self.populate_poi_list)
             else:
-                self.log_message(f"❌ 提交动作失败: {action_type}")
-                self.log_message("   可能原因: 不在人类控制模式或参数错误")
+                self.log_message(f"❌ Failed to submit action: {action_type}")
+                self.log_message("   Possible reason: not in human control mode or invalid params")
         except json.JSONDecodeError:
-            QMessageBox.warning(self, "错误", "参数格式错误，请输入有效的JSON")
+            QMessageBox.warning(self, "Error", "Invalid parameter format, please input valid JSON")
         except Exception as e:
-            QMessageBox.critical(self, "错误", f"提交动作失败: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to submit action: {e}")
 
     def clear_input(self):
         self.params_input.clear()
