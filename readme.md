@@ -29,7 +29,7 @@
 
 <p align="center">
   <a href="https://youtu.be/XizDL9Hv6q0?si=1fQivfG0ExmQQJEl" target="_blank" rel="noopener noreferrer">
-    ▶ Watch the full demo on YouTube
+    ▶ Watch the demo on YouTube
   </a>
 </p>
 
@@ -104,9 +104,9 @@ conda activate deliverybench
 pip install -e .
 ```
 
-#### Step 2. Download the SimWorld Unreal Engine (UE) server
+#### Step 2. Download the DeliveryBench Unreal Engine (UE) server
 
-Download the SimWorld UE server executable from S3 and unzip it. This server renders the 3D city environment and runs the underlying simulation for DeliveryBench. Choose the package that matches your operating system.
+Our DeliveryBench UE server is built on top of [SimWorld](https://github.com/SimWorld-AI/SimWorld). Download the DeliveryBench UE server executable from S3 and unzip it. This server renders the 3D city environment and runs the underlying simulation for the delivery tasks. Choose the package that matches your operating system.
 
 - **Windows:** [SimWorld Windows 64-bit Server (v0.1.0)](https://simworld-release.s3.us-east-1.amazonaws.com/SimWorld-Win64-v0_1_0-Foundation.zip)
 
@@ -114,9 +114,9 @@ Download the SimWorld UE server executable from S3 and unzip it. This server ren
 
 ### Quick Start
 
-#### Step 1. Launch the SimWorld UE server
+#### Step 1. Launch the DeliveryBench UE server
 
-Start the SimWorld UE server first, then run the Python examples. From the extracted UE server package directory:
+Start the DeliveryBench UE server first, then run the Python examples. From the extracted UE server package directory:
 
 - **Windows:** double-click `gym_citynav.exe`, or launch it from the command line:
 
