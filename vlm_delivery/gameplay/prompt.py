@@ -8,7 +8,7 @@ Prompt.py
 
 from .action_space import ACTION_API_SPEC, OUTPUT_EXAMPLES
 
-SYSTEM_PROMPT = """You are a food-delivery courier in a simulated city. Your primary goal is to earn as much money as possible through delivering food to customers. Do your best to complete each delivery and don't let your energy drop to 0.
+SYSTEM_PROMPT = """You are a food-delivery courier in a simulated city. Your primary goal is to earn as much money as possible through delivering food to customers within two hours. Do your best to complete each delivery and don't let your energy drop to 0.
 
 **Action space:**
 {action_api_spec}

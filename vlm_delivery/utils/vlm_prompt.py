@@ -53,12 +53,12 @@ def vlm_agent_state_text(agent: Any) -> str:
     speed_ms = agent.speed_cm_s / 100.0
 
     # Current simulation time (formatted but not currently shown in text)
-    current_time = agent.clock.now_sim()
+    current_time = agent._recorder.active_elapsed_s
     time_str = fmt_time(current_time)
-
+    
     lines: List[str] = []
     lines.append(f"You are Agent {agent.agent_id}. There are {agent.cfg.get('agent_count', 0)} delivery agents in total in this city.")
-    # lines.append(f"Current time is {time_str} (day {int(current_time // 86400) + 1}).")
+    lines.append(f"Current time is {time_str}.")
     lines.append(f"Your current transport mode is {mode_str}, at {fmt_xy_m(agent.x, agent.y)}.")
     lines.append(f"Your speed is ~{speed_ms:.1f} m/s, energy is {agent.energy_pct:.0f}%.")
     pace_map = {"accel": "accelerating", "normal": "normal", "decelerating": "decelerating"}
