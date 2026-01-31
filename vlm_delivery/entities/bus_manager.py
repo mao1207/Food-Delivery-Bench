@@ -1,5 +1,5 @@
+# entities/bus_manager.py
 # -*- coding: utf-8 -*-
-# Base/BusManager.py
 
 import json
 import math

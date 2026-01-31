@@ -1,6 +1,5 @@
+# entities/store.py
 # -*- coding: utf-8 -*-
-# Base/StoreManager.py
-# StoreManager: catalog + payment + inventory only.
 
 import json
 import os

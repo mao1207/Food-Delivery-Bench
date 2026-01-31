@@ -1,4 +1,6 @@
+# map/map_canvas_base.py
 # -*- coding: utf-8 -*-
+
 from typing import Dict, Any, List, Optional, Tuple
 import json, math
 

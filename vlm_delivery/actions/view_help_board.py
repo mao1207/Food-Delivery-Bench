@@ -1,4 +1,4 @@
-# Actions/ViewHelpBoard.py
+# actions/view_help_board.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

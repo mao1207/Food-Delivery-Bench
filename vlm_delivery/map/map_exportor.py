@@ -1,4 +1,6 @@
+# map/map_exportor.py
 # -*- coding: utf-8 -*-
+
 from typing import Any, Dict, List, Optional, Tuple
 
 from PyQt5.QtWidgets import QApplication

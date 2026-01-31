@@ -1,0 +1,5 @@
+{
+"reasoning_and_reflection": "We have two active orders from the same restaurant ~289 m west; prep times 3–5 min. Energy 100%, scooter battery 50% (sufficient). Best to ride to the pickup door now so we’re there when ready. No need to charge yet.",
+"action": "MOVE(-288.53m, -16.58m)",
+"future_plan": "Wait near the pickup door; when orders become ready, PICKUP both, then PLACE_FOOD_IN_BAG using heat pack for order 6 (hot) and ice pack for order 5 (cold) if needed. Deliver order 6 first to (-176.97,-125.79), then order 5 to (-304.10,-224.68). Monitor battery; charge afterward if low."
+}

@@ -1,5 +1,6 @@
-# Utils/vlm_prompt.py
+# utils/vlm_prompt.py
 # -*- coding: utf-8 -*-
+
 """
 Prompt-building utilities for VLM-based DeliveryMan agents.
 

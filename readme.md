@@ -154,7 +154,7 @@ In `experiment_config.json`, make sure the following fields are set correctly:
 * `agent_count`: Number of courier agents to spawn (only used when `multi_agent` is enabled)
 
 
-For detailed configuration documentation, see [CONFIGURATION.md](CONFIGURATION.md).
+For detailed configuration documentation, see [configuration.md](configuration.md).
 
 
 #### Step 3. Configure models
@@ -240,4 +240,4 @@ Once each server uses a unique port (e.g., 9000, 9001, 9002, ...), you can run m
 
 
 ## 🧑‍💻For Contributors
-We welcome contributions from the community! Whether you want to report bugs, suggest features, or submit code improvements, your input is valuable. Please check out our [Contributing Guidelines](CONTRIBUTING.md) for details on how to get started.
+We welcome contributions from the community! Whether you want to report bugs, suggest features, or submit code improvements, your input is valuable. Please check out our [Contributing Guidelines](contributing.md) for details on how to get started.

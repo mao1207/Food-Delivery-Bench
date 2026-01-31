@@ -1,4 +1,4 @@
-# Actions/MoveTo.py
+# actions/move_to.py
 # -*- coding: utf-8 -*-
 
 import math

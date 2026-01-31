@@ -1,4 +1,4 @@
-# Utils/timer.py
+# utils/timer.py
 # -*- coding: utf-8 -*-
 
 import os

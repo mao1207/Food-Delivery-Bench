@@ -1,5 +1,6 @@
-# Utils/vlm_runtime.py
+# utils/vlm_runtime.py
 # -*- coding: utf-8 -*-
+
 """
 Runtime utilities for VLM interaction.
 

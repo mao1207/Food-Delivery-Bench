@@ -1,4 +1,4 @@
-# Actions/UseEnergyDrink.py
+# actions/use_energy_drink.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

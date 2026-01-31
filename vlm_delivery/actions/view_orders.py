@@ -1,4 +1,4 @@
-# Action/ViewOrders.py
+# actions/view_orders.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

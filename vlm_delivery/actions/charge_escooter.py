@@ -1,4 +1,4 @@
-# Actions/ChargeEscooter.py
+# actions/charge_escooter.py
 # -*- coding: utf-8 -*-
 
 import os
@@ -110,7 +110,10 @@ def handle_charge_escooter(dm: Any, act: DMAction, _allow_interrupt: bool) -> No
     target_pct = float(
         act.data.get(
             "target_pct",
-            dm.cfg.get("defaults", {}).get("charge_target_pct", 100.0),
+            dm.cfg.get("escooter_defaults", {}).get(
+                "charge_target_pct",
+                dm.cfg.get("defaults", {}).get("charge_target_pct", 100.0),
+            ),
         )
     )
     target_pct = max(0.0, min(100.0, target_pct))

@@ -1,4 +1,4 @@
-# Actions/TakeFromTempBox.py
+# actions/take_from_temp_box.py
 # -*- coding: utf-8 -*-
 
 from typing import Any, Dict, List

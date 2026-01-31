@@ -1,4 +1,4 @@
-# Actions/StepForward.py
+# actions/step_forward.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

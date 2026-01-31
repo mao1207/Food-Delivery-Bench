@@ -1,4 +1,5 @@
 # run_gym_qt_route_a.py
+import json
 import os
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
@@ -33,14 +34,19 @@ from vlm_delivery.gym_like_interface.gym_like_interface import DeliveryBenchGymE
 
 
 def main():
+    exp_cfg_path = os.path.join(base_dir, "vlm_delivery", "input", "experiment_config.json")
+    with open(exp_cfg_path, "r", encoding="utf-8") as f:
+        exp_cfg = json.load(f) or {}
+    gym_env_cfg = exp_cfg.get("gym_env", {}) or {}
+
     env = DeliveryBenchGymEnvQtRouteA(
         base_dir=base_dir,
-        ue_ip="127.0.0.1",
-        ue_port=9099,
+        ue_ip=gym_env_cfg.get("ue_ip", "127.0.0.1"),
+        ue_port=int(gym_env_cfg.get("ue_port", 9099)),
         sim_tick_ms=100,
         vlm_pump_ms=100,
         enable_viewer=True,  # If unstable, try False to isolate viewer issues.
-        map_name="medium-city-22roads",
+        map_name=gym_env_cfg.get("map_name", "medium-city-22"),
         max_steps=20,
     )
 

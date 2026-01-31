@@ -1,5 +1,6 @@
+# base/timer.py
 # -*- coding: utf-8 -*-
-# Base/Timer.py
+
 # Pure Python virtual time utilities, decoupled from any UI framework.
 # Used to keep viewer / UE / agent logic on a shared "simulation time" axis.
 # - VirtualClock: global simulation clock with adjustable time_scale.

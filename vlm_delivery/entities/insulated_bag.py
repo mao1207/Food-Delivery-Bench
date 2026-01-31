@@ -1,4 +1,6 @@
+# entities/insulated_bag.py
 # -*- coding: utf-8 -*-
+
 """
 Insulated_bag.py
 

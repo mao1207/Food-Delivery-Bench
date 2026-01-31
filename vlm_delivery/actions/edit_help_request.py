@@ -1,4 +1,4 @@
-# Actions/EditHelpRequest.py
+# actions/edit_help_request.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

@@ -19,7 +19,7 @@ Experimental settings are split into two configuration files:
 
 - **`ue_port`** (integer): Unreal Engine server port number. Default: `9000`. Must match the port configured in the UE server's `gym_citynav/Binaries/Linux/unrealcv.ini` file.
 
-- **`map_name`** (string): Name of the map to use. Must exactly match the map name used when launching `gym_citynav.exe`. Examples: `"medium-city-22roads"`, `"small-city-11"`, `"large-city-26"`. See `maps/` for the full list of available cities.
+- **`map_name`** (string): Name of the map to use. Must exactly match the map name used when launching `gym_citynav.exe`. Examples: `"medium-city-22"`, `"small-city-11"`, `"large-city-26"`. See `maps/` for the full list of available cities.
 
 #### `lifecycle` - Episode lifecycle settings
 

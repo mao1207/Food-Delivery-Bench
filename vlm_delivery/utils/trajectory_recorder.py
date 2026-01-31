@@ -1,5 +1,6 @@
+# utils/trajectory_recorder.py
 # -*- coding: utf-8 -*-
-# trajectory_recorder.py
+
 """
 Trajectory / episode data recorder.
 

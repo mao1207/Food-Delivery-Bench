@@ -1,4 +1,4 @@
-# Actions/ReportHelpFinished.py
+# actions/report_help_finished.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

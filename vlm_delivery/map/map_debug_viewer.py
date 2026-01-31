@@ -1,5 +1,6 @@
-# utils/map_debug_viewer.py
+# map/map_debug_viewer.py
 # -*- coding: utf-8 -*-
+
 from typing import Dict, Any, List, Optional, Tuple, Callable
 import os, time, math, tempfile
 

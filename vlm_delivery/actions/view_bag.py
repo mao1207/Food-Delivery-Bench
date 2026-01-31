@@ -1,4 +1,4 @@
-# Actions/ViewBag.py
+# actions/view_bag.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

@@ -1,5 +1,6 @@
+# gameplay/help.py
 # -*- coding: utf-8 -*-
-# Base/Help.py
+
 from __future__ import annotations
 
 import math

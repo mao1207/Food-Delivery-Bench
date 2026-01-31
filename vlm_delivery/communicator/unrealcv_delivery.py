@@ -1,5 +1,5 @@
+# communicator/unrealcv_delivery.py
 # -*- coding: utf-8 -*-
-# Communicator/unrealcv_delivery.py
 
 import threading
 from .unrealcv_basic import UnrealCV

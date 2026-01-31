@@ -1,4 +1,4 @@
-# Action/Say.py
+# actions/say.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

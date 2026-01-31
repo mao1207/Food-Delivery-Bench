@@ -1,4 +1,4 @@
-# Actions/UseBatteryPack.py
+# actions/use_battery_pack.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

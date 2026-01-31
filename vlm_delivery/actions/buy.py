@@ -1,4 +1,4 @@
-# Actions/Buy.py
+# actions/buy.py
 # -*- coding: utf-8 -*-
 
 from typing import Any, Dict, Optional, List

@@ -1,5 +1,5 @@
+# entities/car.py
 # -*- coding: utf-8 -*-
-# Base/Car.py
 
 from dataclasses import dataclass
 from enum import Enum

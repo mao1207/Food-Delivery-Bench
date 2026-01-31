@@ -1,4 +1,6 @@
+# gameplay/prompt.py
 # -*- coding: utf-8 -*-
+
 """
 Prompt.py
 - English system prompt for the DeliveryMan VLM agent, written in paragraphs (no bullet lists).

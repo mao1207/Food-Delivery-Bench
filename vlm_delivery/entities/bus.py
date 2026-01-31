@@ -1,5 +1,5 @@
+# entities/bus.py
 # -*- coding: utf-8 -*-
-# Base/Bus.py
 
 import time
 import math

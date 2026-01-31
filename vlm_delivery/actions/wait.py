@@ -1,4 +1,4 @@
-# Actions/Wait.py
+# actions/wait.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

@@ -1,5 +1,5 @@
+# entities/delivery_man.py
 # -*- coding: utf-8 -*-
-# Base/DeliveryMan.py
 
 import time
 import os

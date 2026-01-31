@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 # Communicator/unrealcv_basic.py
+# -*- coding: utf-8 -*-
 
 import time
 import threading

@@ -1,4 +1,6 @@
+# gym_like_interface/gym_like_interface.py
 # -*- coding: utf-8 -*-
+
 """
 DeliveryBenchGymEnvQtRouteA — Qt-thread-only mutations + Script-safe driving (Windows/PyQt5)
 
@@ -35,6 +37,16 @@ def _load_json(path: Path) -> dict:
         return json.load(f) or {}
 
 
+def _deep_merge_dicts(base: dict, override: dict) -> dict:
+    merged = dict(base or {})
+    for key, value in (override or {}).items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge_dicts(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
 def _load_world_nodes(world_json: Path):
     return _load_json(world_json).get("nodes", [])
 
@@ -64,7 +76,8 @@ class EnvPaths:
     world_json: Path
     store_items_json: Path
     food_json: Path
-    config_json: Path
+    experiment_config_json: Path
+    game_mechanics_config_json: Path
     special_notes_json: Path
     models_json: Path
 
@@ -257,7 +270,9 @@ class DeliveryBenchGymEnvQtRouteA:
 
         os.chdir(str(self.paths.base_dir))
 
-        cfg = _load_json(self.paths.config_json)
+        game_cfg = _load_json(self.paths.game_mechanics_config_json)
+        experiment_cfg = _load_json(self.paths.experiment_config_json)
+        cfg = _deep_merge_dicts(game_cfg, experiment_cfg)
         models_config = _load_json(self.paths.models_json)
         self.cfg = cfg
 
@@ -696,7 +711,8 @@ class DeliveryBenchGymEnvQtRouteA:
             world_json=base_dir / "maps" / map_name / "progen_world_enriched.json",
             store_items_json=vlm_delivery_dir / "input" / "store_items.json",
             food_json=vlm_delivery_dir / "input" / "food.json",
-            config_json=vlm_delivery_dir / "input" / "config.json",
+            experiment_config_json=vlm_delivery_dir / "input" / "experiment_config.json",
+            game_mechanics_config_json=vlm_delivery_dir / "input" / "game_mechanics_config.json",
             special_notes_json=vlm_delivery_dir / "input" / "special_notes.json",
             models_json=vlm_delivery_dir / "input" / "models.json",
         )

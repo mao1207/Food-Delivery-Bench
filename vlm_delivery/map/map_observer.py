@@ -1,3 +1,6 @@
+# map/map_observer.py
+# -*- coding: utf-8 -*-
+
 from typing import Dict, Any, List, Optional, Tuple, Callable
 import math, random
 

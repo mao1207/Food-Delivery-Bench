@@ -1,4 +1,4 @@
-# Actions/PickupFood.py
+# actions/pick_up_food.py
 # -*- coding: utf-8 -*-
 
 from typing import Any, List

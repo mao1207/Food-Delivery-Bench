@@ -1,4 +1,4 @@
-# Actions/Rest.py
+# actions/rest.py
 # -*- coding: utf-8 -*-
 
 from typing import Any
@@ -31,7 +31,10 @@ def handle_rest(dm: Any, act: DMAction, _allow_interrupt: bool) -> None:
     target = float(
         act.data.get(
             "target_pct",
-            dm.cfg.get("defaults", {}).get("rest_target_pct", 100.0),
+            dm.cfg.get(
+                "rest_target_pct",
+                dm.cfg.get("defaults", {}).get("rest_target_pct", 100.0),
+            ),
         )
     )
 

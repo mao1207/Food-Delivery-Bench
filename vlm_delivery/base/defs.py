@@ -1,5 +1,5 @@
+# base/defs.py (shared action / transport types for DeliveryMan)
 # -*- coding: utf-8 -*-
-# Base/DeliveryManTypes.py (shared action / transport types for DeliveryMan)
 
 from __future__ import annotations
 

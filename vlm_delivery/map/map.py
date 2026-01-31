@@ -1,4 +1,6 @@
-# Base/Map.py
+# map/map.py
+# -*- coding: utf-8 -*-
+
 import json
 import math
 from collections import deque

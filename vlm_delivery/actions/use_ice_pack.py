@@ -1,4 +1,4 @@
-# Actions/UseIcePack.py
+# actions/use_ice_pack.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

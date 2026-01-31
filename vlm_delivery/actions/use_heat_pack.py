@@ -1,4 +1,4 @@
-# Actions/UseHeatPack.py
+# actions/use_heat_pack.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

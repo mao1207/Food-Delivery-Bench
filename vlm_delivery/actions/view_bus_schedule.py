@@ -1,4 +1,4 @@
-# Actions/ViewBusSchedule.py
+# actions/view_bus_schedule.py
 # -*- coding: utf-8 -*-
 
 from typing import Any

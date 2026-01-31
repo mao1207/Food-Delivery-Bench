@@ -1,4 +1,4 @@
-# Actions/PlaceFoodInBag.py
+# actions/place_food_in_bag.py
 # -*- coding: utf-8 -*-
 
 import re

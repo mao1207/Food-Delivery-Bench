@@ -1,4 +1,4 @@
-# Actions/PostHelpRequest.py
+# actions/post_help_request.py
 # -*- coding: utf-8 -*-
 
 from typing import Any, Dict, List

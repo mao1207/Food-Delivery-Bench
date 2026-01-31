@@ -1,4 +1,4 @@
-# Actions/BoardBus.py
+# actions/board_bus.py
 # -*- coding: utf-8 -*-
 
 import math

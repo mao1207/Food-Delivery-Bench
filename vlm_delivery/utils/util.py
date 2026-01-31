@@ -1,4 +1,6 @@
+# utils/util.py
 # -*- coding: utf-8 -*-
+
 """
 Utility functions for image conversion, filename sanitization, spatial checks,
 POI queries, formatting helpers, and DeliveryMan logging/introspection tools.

@@ -1,5 +1,6 @@
+# utils/ui.py
 # -*- coding: utf-8 -*-
-# Utils/ui.py
+
 """
 UI helper functions for DeliveryMan progress indicators.
 
