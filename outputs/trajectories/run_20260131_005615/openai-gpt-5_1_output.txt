@@ -1,5 +1,0 @@
-{
-"reasoning_and_reflection": "Scooter at origin with 50% battery and full energy. No active orders; to maximize earnings I should immediately look for available orders rather than moving or charging.",
-"action": "VIEW_ORDERS()",
-"future_plan": "Accept the best nearby multi-stop order(s), ride to the pickup, manage temperature with packs if needed, arrange items in bag, then navigate efficiently to drop-offs. Monitor energy and scooter battery; charge only if necessary between runs."
-}

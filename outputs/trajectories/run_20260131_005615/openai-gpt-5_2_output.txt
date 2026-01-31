@@ -1,5 +1,0 @@
-{
-"reasoning_and_reflection": "We’re idle with scooter at center, 50% battery—enough for a run. Need to accept profitable nearby orders with manageable temps. Orders 5 and 6 pick up at restaurant 1 (-288,-17), relatively close and short distances; combined payout $5.33 and similar route south-west. Accept both to batch efficiently.",
-"action": "ACCEPT_ORDER([5, 6])",
-"future_plan": "Ride to restaurant 1 at (-288.53m, -16.58m), PICKUP both when ready, then PLACE_FOOD_IN_BAG setting heat/ice as needed (Order 5 cold 5°C; Order 6 hot 65°C) using packs if required. Deliver Order 6 first (-176.97,-125.79), then Order 5 (-304.10,-224.68). Monitor battery; charge after if needed."
-}
