@@ -3,12 +3,12 @@
 </p> <p align="center"> 📄 <a href="https://arxiv.org/abs/2512.19234">Paper</a> &nbsp; | &nbsp; 🏠 <a href="https://deliverybench.github.io/">Website</a> &nbsp; | &nbsp; 🏙️ <a href="#">City Environments (Download)</a> &nbsp  </p> <p align="center"> 
 
 <p align="center">
-  <a href="LINK_MAO">Lingjun Mao<sup>1</sup></a>, 
-  <a href="LINK_REN">Jiawei Ren<sup>1</sup></a>, 
-  <a href="LINK_ZHOU">Kun Zhou<sup>1</sup></a>, 
-  <a href="LINK_CHEN">Jixuan Chen<sup>1</sup></a>, 
-  <a href="LINK_MA">Ziqiao Ma<sup>2</sup></a>, 
-  <a href="LINK_QIN">Lianhui Qin<sup>1</sup></a>
+  <a href="https://mao1207.github.io/">Lingjun Mao<sup>1</sup></a>, 
+  <a href="https://renjw02.github.io/">Jiawei Ren<sup>1</sup></a>, 
+  <a href="https://lancelot39.github.io/">Kun Zhou<sup>1</sup></a>, 
+  <a href="https://chenjix.github.io/">Jixuan Chen<sup>1</sup></a>, 
+  <a href="https://mars-tin.github.io/">Ziqiao Ma<sup>2</sup></a>, 
+  <a href="https://lianhui.ucsd.edu/">Lianhui Qin<sup>1</sup></a>
 </p>
 
 <p align="center">
