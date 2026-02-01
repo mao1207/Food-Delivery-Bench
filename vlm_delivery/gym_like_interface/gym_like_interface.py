@@ -403,7 +403,7 @@ class DeliveryBenchGymEnvQtRouteA:
         provider = (agent_cfg.get("provider") or "openai").lower()
 
         openai_key = os.getenv("OPENAI_KEY") or os.getenv("OPENAI_API_KEY") or ""
-        openrouter_key = os.getenv("OPENROUTER_KEY") or os.getenv("OPENROUTER_API_KEY") or "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"
+        openrouter_key = os.getenv("OPENROUTER_KEY") or os.getenv("OPENROUTER_API_KEY") or ""
         api_key = openai_key if provider == "openai" else openrouter_key
         if not api_key:
             raise RuntimeError(f"Missing API key for provider={provider}. Set OPENAI_API_KEY or OPENROUTER_API_KEY.")

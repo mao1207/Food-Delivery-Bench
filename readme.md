@@ -169,6 +169,8 @@ You can directly swap in models supported by **OpenRouter** or **OpenAI** (e.g.,
 
 Just replace the model name and corresponding API key fields.
 
+Before running, export your API key in the shell you will launch Jupyter from (e.g., `export OPENROUTER_API_KEY=...` or `export OPENAI_API_KEY=...`).
+
 #### Step 4. Run the DeliveryBench evaluation
 
 Open the quick-start notebook:
@@ -198,6 +200,45 @@ python vlm_delivery/evaluation/agent_performance_analysis.py \
 * The script will automatically load **all JSON files in the folder**, compute aggregate statistics (e.g., per-model averages), and write the CSV reports into `/path/to/output_dir`.
 
 ## 🧩 Advanced Usage
+
+### Create a Custom DeliveryBench Map
+
+DeliveryBench maps under `maps/<map_name>/` are generated in three stages. You can create your own city map assets (and the corresponding UE city environment) for training or evaluation by following the steps below.
+
+#### Step 1. City Layout Generation
+
+Generate a new procedural city layout (roads + buildings) and export the raw map assets under `maps/<map_name>/`.
+
+```bash
+python city_generation/generate_city_layout.py \
+  --map-name <map_name> \
+  --num-segments 35 \
+  --seed 42
+```
+
+This will create the following files in `maps/<map_name>/`: `roads.json`, `buildings.json`, `elements.json`, `routes.json` (routes / bus routes), and `progen_world.json` (UE-compatible world objects).
+
+#### Step 2. Enrich the City for DeliveryBench (POIs + gameplay metadata)
+
+Take the base layout from Step 1 and add DeliveryBench-specific annotations (POI tags, bus routes, chargers). This produces the DeliveryBench-ready map file.
+
+```bash
+python city_generation/enrich_deliverybench_map.py \
+  --map-dir maps/<map_name> \
+  --seed 42
+```
+
+This will generate `maps/<map_name>/progen_world_enriched.json`, the DeliveryBench-ready map file. It enriches the base layout with DeliveryBench-specific annotations, including POI tags (e.g., `restaurant`, `store`, roadside chargers) and bus routes (`bus_routes`).
+
+Optional sanity check (headless): render the generated map to a PNG and quickly verify the layout/POIs/bus routes look correct:
+
+```bash
+python vlm_delivery/scripts/test_map.py --map-name <map_name> --out-global /path/to/map.png
+```
+
+If `--out-global` is not provided, the image will be saved under `outputs/map_debug/` by default.
+
+#### Step 3. UE city generation
 
 ### Evaluating Custom Models
 
