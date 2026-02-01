@@ -106,11 +106,11 @@ pip install -e .
 
 #### Step 2. Download the DeliveryBench Unreal Engine (UE) server
 
-Our DeliveryBench UE server is built on top of [SimWorld](https://github.com/SimWorld-AI/SimWorld). Download the DeliveryBench UE server executable from S3 and unzip it. This server renders the 3D city environment and runs the underlying simulation for the delivery tasks. Choose the package that matches your operating system.
+Our DeliveryBench UE server is built on top of [SimWorld](https://github.com/SimWorld-AI/SimWorld). Download the DeliveryBench UE server executable from HuggingFace and unzip it. This server renders the 3D city environment and runs the underlying simulation for the delivery tasks. Choose the package that matches your operating system.
 
-- **Windows:** [DeliveryBench Windows 64-bit Server (v0.1.0)](https://simworld-release.s3.us-east-1.amazonaws.com/SimWorld-Win64-v0_1_0-Foundation.zip)
+- **Windows:** [DeliveryBench Windows](https://huggingface.co/datasets/SimWorld-AI/DeliveryBench/blob/main/Windows.zip)
 
-- **Linux:** [DeliveryBench Linux 64-bit Server (v0.1.0)](https://simworld-release.s3.us-east-1.amazonaws.com/SimWorld-Linux-v0_1_0-Foundation.zip)
+- **Linux:** [DeliveryBench Linux](https://huggingface.co/datasets/SimWorld-AI/DeliveryBench/blob/main/Linux.zip)
 
 ### Quick Start
 
