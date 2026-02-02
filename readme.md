@@ -240,6 +240,8 @@ If `--out-global` is not provided, the image will be saved under `outputs/map_de
 
 #### Step 3. UE city generation
 
+After obtaining `progen_world.json`, you can generate the environment in UE. DeliveryBench leverages [SimWorld](https://github.com/SimWorld-AI/SimWorld)'s generation functionality. Please refer to the [world_generation](https://github.com/SimWorld-AI/SimWorld/blob/main/examples/world_generation.ipynb) for detailed instructions on generating the world in UE.
+
 ### Evaluating Custom Models
 
 We also support plugging in **local VLMs**.
